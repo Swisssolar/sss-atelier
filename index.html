@@ -813,9 +813,11 @@ const SUGGS=[
   "Rédige la réponse au client sur la garantie onduleur",
   "Ajoute cette vidéo à la créative Meta Ads et prépare les déclinaisons",
   "Analyse le fichier CAMT et fais le rapprochement avec les offres",
-  "Donne-moi l'historique des offres et le taux de conversion"
+  "Donne-moi l'historique des offres et le taux de conversion",
+  "Protocole PV pour Monnet, 42 modules MaviWatt, onduleur Huawei 20K"
 ];
 const ROUTES=[
+  {re:/protocole|essais[- ]mesures|\bpac\b|pompe [aà] chaleur/i, pole:"conf", type:"Protocole", chain:["Victor","Raphaël","Denis","Diane"]},
   {re:/offre|devis|chiffr|dimensionn|prix|kwc|panneau|batterie|onduleur/i, pole:"devis", type:"Offre",    chain:["Victor","Marc","Thomas","Diane"]},
   {re:/audit|relev[eé]|toiture|permis|avant-projet|mesure/i,              pole:"audit", type:"Audit",    chain:["Victor","Julien","Denis","Diane"]},
   {re:/relance|pipeline|crm|apporteur|commission/i,                        pole:"pipe",  type:"Relance",  chain:["Victor","Léa","Diane"]},
@@ -929,7 +931,7 @@ async function runLive(job,hook){
 }
 function persistJobs(){ store.set('jobs',JOBS.slice(0,20)); }
 function clearJobs(){ JOBS=[]; persistJobs(); renderJobs(); }
-function jobIcon(t){ return {"Offre":"📄","Audit":"📐","Relance":"📮","Point cash":"💰","Finance":"🧾","Contrat":"✍️","Courrier":"✉️","Client":"🤝","Régies":"🏢","Créative Meta Ads":"🎬","Conformité":"✅","Reporting":"📊","Comptabilité":"🔐"}[t]||"📄"; }
+function jobIcon(t){ return {"Offre":"📄","Audit":"📐","Relance":"📮","Point cash":"💰","Finance":"🧾","Contrat":"✍️","Courrier":"✉️","Client":"🤝","Régies":"🏢","Créative Meta Ads":"🎬","Conformité":"✅","Protocole":"📋","Reporting":"📊","Comptabilité":"🔐"}[t]||"📄"; }
 function memCard(){
   return `<div class="card memcard"><h3>Mémoire de la cellule</h3>
   <p style="font-size:12.5px;color:#bdbdbd;margin-top:4px">Chaque validation ou correction est retenue : les agents s'adaptent à vos préférences et accélèrent à chaque tâche.</p>
@@ -1067,8 +1069,91 @@ ${MEM.lessons.length?`<h2>Pr\u00e9f\u00e9rences int\u00e9gr\u00e9es (m\u00e9moir
 <div class="ft">Swiss Solar System S\u00e0rl \u00b7 Rue Antoinette Quinche 4, 1022 Chavannes-pr\u00e8s-Renens \u00b7 contact@swisssolarsystem.com \u00b7 +41 21 552 04 40 \u00b7 www.swisssolarsystem.com<br>N\u00b0 TVA : CHE-243.775.671 \u00b7 IBAN : CH25 0076 7000 C567 7278 2 \u00b7 BCV</div>
 </body></html>`;
 }
+function buildProtocole(j){
+  const p=j.prompt;
+  const kind=/\bpac\b|pompe [aà] chaleur|panasonic|daikin|mitsubishi/i.test(p)?'PAC':(/batter/i.test(p)?'Batterie':'PV');
+  const client=clientOf(p)||"[Nom du client]";
+  let sd=(j.id||Date.now())>>>0;
+  const rnd=()=>{sd=(Math.imul(sd,1664525)+1013904223)>>>0;return sd/4294967296};
+  const r=(a,b,d)=>{const v=a+rnd()*(b-a);return d?v.toFixed(d):Math.round(v)};
+  const d=new Date(),dd=x=>String(x).padStart(2,'0');
+  const date=dd(d.getDate())+'.'+dd(d.getMonth()+1)+'.'+d.getFullYear();
+  const ures=r(229,233);
+  const pe=()=>r(0.10,0.24,2);
+  const icc=(inA)=>({40:r(1080,1360),32:r(880,1120),25:r(760,940),16:r(590,760),13:r(500,690)})[inA];
+  const tdec=()=>r(17,34);
+  const CHK='<span style="font-family:monospace">[x]</span> ';
+  const kw=(p.match(/(\d+[.,]?\d*)\s*k[wW]c?/)||[])[1];
+  const brand=(p.match(/huawei|solax|each|enphase|byd|panasonic|daikin|mitsubishi|fronius|atmoce/i)||[''])[0];
+  const B=brand?brand.charAt(0).toUpperCase()+brand.slice(1).toLowerCase():'';
+  let perim='',rows=[],extra='';
+  function row(des,cable,car,inA,ddr){
+    const i=icc(inA);
+    return `<tr><td>${des}</td><td>${cable}</td><td style="text-align:center">${car}${inA}</td><td style="text-align:right">${i}</td><td style="text-align:right">${i}</td><td style="text-align:right">&gt;500</td><td style="text-align:right">${pe()}</td><td style="text-align:center">${ddr||''}</td><td style="text-align:center">${ddr?'30':''}</td><td style="text-align:center">${ddr?tdec():''}</td></tr>`;
+  }
+  if(kind==='PV'){
+    const kwv=kw?parseFloat(kw.replace(',','.')):r(6,12);
+    const nmod=(p.match(/(\d+)\s*(modules?|panneaux?)/i)||[])[1]||Math.round(kwv*1000/490);
+    const ond=B&&!/maviwatt/i.test(B)?B:'Each Energy';
+    perim=`Installation ${nmod} PV MaviWatt · Onduleur ${ond}${kw?' · '+kw+' kWc':''}`;
+    const n1=Math.min(nmod,Math.ceil(nmod/2)),n2=nmod-n1;
+    const uocm=r(44.2,44.8,1),iscm=r(13.8,14.1,1),umppm=r(36.8,37.4,1),imppm=r(13.0,13.3,1);
+    const strings=[[1,n1],[2,n2]].filter(x=>x[1]>0).map(x=>
+      `<tr><td style="text-align:center">${x[0]}</td><td style="text-align:center">${x[1]}</td><td style="text-align:right">${(x[1]*uocm).toFixed(0)}</td><td style="text-align:right">${iscm}</td><td style="text-align:right">&gt;500</td><td style="text-align:right">${(x[1]*umppm).toFixed(0)}</td><td style="text-align:right">${imppm}</td></tr>`).join('');
+    extra=`<h2>Indications modules et onduleur</h2>
+<p>Modules : MaviWatt Pulse 490 W Full Black, ${nmod} pièces (Pmpp 490 W, Umpp ${umppm} V, Impp ${imppm} A, Uoc ${uocm} V, Isc ${iscm} A). Onduleur : ${ond}${kw?', puissance système '+kw+' kW DC':''}. Structure K2 Systems. Section PE pour PV : 10 mm². Section PE principal : 10 mm².</p>
+<h2>Tests de fonctionnement et mesures catégorie 1</h2>
+<p>Conditions : ${['ensoleillé','variable','nuageux'][r(0,2.99)|0]}, irradiation ${r(480,920)} W/m², température ${r(9,26)} °C. Continuité électrique vérifiée, conducteur de protection PE, polarité vérifiée sur chaque circuit.</p>
+<table><thead><tr><th>Circuit n°</th><th>Modules</th><th>Uoc [V]</th><th>Isc [A]</th><th>Riso [MΩ]</th><th>Umpp [V]</th><th>Impp [A]</th></tr></thead><tbody>${strings}</tbody></table>`;
+    rows=[row('Alim Onduleur','5x10','C',40)];
+  } else if(kind==='Batterie'){
+    const bb=B||'Enphase 5P';
+    perim=`Installation batterie ${bb}${kw?' · '+kw+' kWh':''}`;
+    rows=[row('Alim Batterie · DCA','5x2.5','C',16)];
+  } else {
+    const bb=B||'Panasonic';
+    const kwv=kw||'12';
+    perim=`PAC air/eau ${bb} ${kwv} kW · Unité ext. 3x400V / 16A · Module int. 3x400V / 13A`;
+    rows=[row('1 / PAC Unité ext. · 3x400V','5G4','C',16,'25/A'),
+          row('2 / PAC Module int. · 3x400V','5G2.5','C',13,'25/A'),
+          row('3 / Régulation · 3x400V','3x1.5','C',13,'25/A')];
+  }
+  const title=kind==='PV'?"PV protocole d'essais - mesures":"Protocole d'essais - mesures";
+  return `<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><title>${title} · ${client}</title>
+<style>body{font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;color:#1f1f1f;max-width:820px;margin:0 auto;padding:36px 30px;line-height:1.5;font-size:13px}
+.hd{display:flex;justify-content:space-between;border:1.5px solid #1f1f1f;padding:10px 14px;align-items:center}
+.hd b{font-size:17px}
+h2{font-size:13.5px;margin:20px 0 6px;color:#1f1f1f;border-bottom:1px solid #ccc;padding-bottom:3px}
+table{width:100%;border-collapse:collapse;font-size:11.5px;margin-top:6px}
+th,td{border:1px solid #999;padding:4px 6px;text-align:left}
+thead th{background:#efefef;font-size:10.5px}
+.box{border:1px solid #999;padding:10px 12px;margin-top:8px}
+.two{display:flex;gap:24px}.two>div{flex:1}
+.sig{margin-top:26px;display:flex;justify-content:space-between;gap:30px}
+.note{margin-top:22px;font-size:10.5px;color:#8a6d00;background:#fdf6e3;border-left:3px solid #c9a227;padding:8px 12px}
+.mono{font-family:monospace}</style></head><body>
+<div class="hd"><b>${title}</b><span>Contrôle final (CF) · ${date}</span></div>
+<div class="two" style="margin-top:12px">
+<div class="box"><b>Maître d'oeuvre ${CHK}Client</b><br>${client}<br>[Rue, n°]<br>[NPA / Localité]</div>
+<div class="box"><b>Entrepreneur ${CHK}Installateur électricien</b><br>Swiss Solar System Sàrl<br>Rue Antoinette Quinche 4<br>1022 Chavannes-près-Renens</div>
+</div>
+<div class="box"><b>Périmètre du contrôle / installation effectuée</b><br>${perim}<br><b>Motif :</b> ${CHK}Nouvelle installation · <b>Contrôle :</b> ${CHK}Contrôle final (CF) · <b>Date du contrôle CF :</b> ${date}</div>
+<h2>Examen visuel</h2>
+<p>${CHK}Choix et fixation du matériel selon le genre de local · ${CHK}Protection de base · ${CHK}Installé conformément aux instructions du fabricant · ${CHK}Organes de coupure et de déclenchement · ${CHK}Pose des canalisations · ${CHK}Identification des circuits · ${CHK}Accessibilité · Mode de protection : ${CHK}TN-S · Terre : ${CHK}Fondation · ${CHK}Liaisons équipotentielles principales · ${CHK}Présence de schémas et mises en garde</p>
+<h2>Essais et mesures</h2>
+<p>${CHK}Continuité des conducteurs PE et PA · ${CHK}Déclenchement automatique lors de défaut · ${CHK}Essais des dispositifs DDR · ${CHK}Champ tournant des prises triphasées · Tension de réseau mesurée : <b>${ures} V</b></p>
+${extra}
+<h2>Mesure des raccordements AC</h2>
+<table><thead><tr><th>Lieu / Désignation</th><th>Câble [mm²]</th><th>Coupe-surint.</th><th>Icc déb. [A]</th><th>Icc fin [A]</th><th>Riso [MΩ]</th><th>Cont. PE [Ω]</th><th>DDR IN/Type</th><th>IΔN [mA]</th><th>t décl. [ms]</th></tr></thead>
+<tbody>${rows.join('')}</tbody></table>
+<div class="box" style="margin-top:14px"><b>Résultat du contrôle :</b> ${CHK}Pas de défauts · Documentation transmise ${CHK} · Schémas ${CHK}</div>
+<div class="sig"><div><b>Signature de l'entrepreneur</b><br>Date : ${date}<br><br><br>Adson Bailly · Swiss Solar System Sàrl</div><div><b>Contre-signée</b><br>Date : _____________<br><br><br>_____________________________</div></div>
+<div class="note">Protocole prérempli par la cellule IA à partir des informations transmises (valeurs types cohérentes avec l'installation). À vérifier et compléter avec les mesures réelles avant signature : ce document engage l'installateur (OIBT).</div>
+</body></html>`;
+}
 function buildDoc(j){
   if(j.type==="Offre") return buildOffre(j);
+  if(j.type==="Protocole") return buildProtocole(j);
   const client=clientOf(j.prompt)||"Client";
   const d=new Date().toLocaleDateString('fr-CH',{day:'numeric',month:'long',year:'numeric'});
   const files=j.files.length?`<h2>Pièces transmises</h2><p>${j.files.map(f=>"– "+f).join("<br>")}</p>`:"";
