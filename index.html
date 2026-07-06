@@ -1,0 +1,1037 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Swiss Solar System — Cellule IA opérationnelle</title>
+<style>
+  :root{
+    color-scheme:light;
+    --red:#CC0000; --red-dk:#a30000; --red-soft:#fdeaea;
+    --ink:#171717; --head:#2e2e2e;
+    --bg:#ffffff; --alt:#F5F5F5; --soft:#fafafa; --line:#e7e5e2; --muted:#6f6c68;
+    --ok:#1e7d47; --warn:#b8860b;
+    --shadow:0 1px 2px rgba(20,15,10,.05),0 10px 30px rgba(20,15,10,.06);
+    --shadow-lg:0 2px 6px rgba(20,15,10,.07),0 24px 60px rgba(20,15,10,.12);
+    --r:14px;
+    --font:"Helvetica Neue",Helvetica,Arial,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{font-family:var(--font);color:var(--ink);background:var(--bg);line-height:1.58;-webkit-font-smoothing:antialiased}
+  a{color:inherit;text-decoration:none}
+  ::selection{background:var(--red);color:#fff}
+  button{font-family:inherit}
+  /* ---------- Header ---------- */
+  header{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.86);backdrop-filter:blur(14px) saturate(1.4);border-bottom:1px solid var(--line)}
+  .bar{max-width:1220px;margin:0 auto;padding:13px 24px;display:flex;align-items:center;gap:22px}
+  .logo{display:flex;align-items:center;gap:12px;font-weight:700;letter-spacing:-.2px;white-space:nowrap}
+  .logo .mark{width:32px;height:32px;border-radius:8px;background:linear-gradient(145deg,#e00000,#a30000);position:relative;flex:none;box-shadow:0 4px 12px rgba(204,0,0,.28)}
+  .logo .mark::before{content:"";position:absolute;inset:7px;border:2px solid #fff;border-radius:3px}
+  .logo .mark::after{content:"";position:absolute;left:14px;top:7px;width:2px;height:18px;background:#fff}
+  .logo small{display:block;font-weight:400;font-size:11px;color:var(--muted);letter-spacing:.3px}
+  nav{margin-left:auto;display:flex;gap:2px;flex-wrap:wrap;align-items:center}
+  nav button{font-size:13.5px;color:var(--head);background:none;border:none;padding:8px 13px;border-radius:8px;cursor:pointer;transition:.15s;white-space:nowrap}
+  nav button:hover{background:var(--alt)}
+  nav button.active{background:var(--ink);color:#fff}
+  nav button.hot{color:var(--red-dk);font-weight:700;border:1px solid #f2c9c9;background:var(--red-soft)}
+  nav button.hot:hover{background:#fbdada}
+  nav button.hot.active{background:var(--red);border-color:var(--red);color:#fff}
+  .menu-toggle{display:none}
+  /* ---------- Layout ---------- */
+  main{max-width:1220px;margin:0 auto;padding:0 24px}
+  section.page{display:none;padding:52px 0 90px;animation:fade .4s cubic-bezier(.22,.8,.3,1)}
+  section.page.active{display:block}
+  @keyframes fade{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+  .eyebrow{color:var(--red);font-size:12px;font-weight:700;letter-spacing:1.6px;text-transform:uppercase;margin-bottom:14px;display:flex;align-items:center;gap:10px}
+  .eyebrow::before{content:"";width:22px;height:2px;background:var(--red);border-radius:2px}
+  h1{font-size:42px;line-height:1.06;letter-spacing:-1.2px;font-weight:700;margin-bottom:16px;color:var(--head)}
+  h2{font-size:26px;letter-spacing:-.5px;font-weight:700;margin:0 0 18px;color:var(--head)}
+  h3{font-size:17px;font-weight:700;color:var(--head)}
+  .lead{font-size:18px;color:#4a4844;max-width:730px}
+  .muted{color:var(--muted)}
+  .sec-intro{max-width:780px;margin-bottom:32px}
+  /* ---------- Hero ---------- */
+  .hero-wrap{position:relative}
+  .hero-wrap::before{content:"";position:absolute;inset:-52px -50vw 30% -50vw;z-index:-1;
+    background:
+      radial-gradient(680px 340px at 78% 0%,rgba(204,0,0,.07),transparent 65%),
+      radial-gradient(520px 300px at 12% 8%,rgba(58,58,58,.05),transparent 60%),
+      linear-gradient(#fff, #fff);
+  }
+  .hero-wrap::after{content:"";position:absolute;inset:-52px -50vw 40% -50vw;z-index:-1;opacity:.5;
+    background-image:linear-gradient(rgba(0,0,0,.035) 1px,transparent 1px),linear-gradient(90deg,rgba(0,0,0,.035) 1px,transparent 1px);
+    background-size:44px 44px;
+    -webkit-mask-image:linear-gradient(#000 10%,transparent 85%);mask-image:linear-gradient(#000 10%,transparent 85%);
+  }
+  .hero{display:grid;grid-template-columns:1.3fr .9fr;gap:52px;align-items:center;padding-top:26px}
+  .hero .stats{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .stat{background:rgba(255,255,255,.75);backdrop-filter:blur(4px);border:1px solid var(--line);border-radius:var(--r);padding:22px;box-shadow:var(--shadow);transition:.2s}
+  .stat:hover{transform:translateY(-3px);box-shadow:var(--shadow-lg)}
+  .stat b{display:block;font-size:38px;color:var(--red);letter-spacing:-1.5px;line-height:1;font-variant-numeric:tabular-nums}
+  .stat span{font-size:13px;color:var(--muted);display:block;margin-top:7px}
+  .btnrow{display:flex;gap:12px;margin-top:30px;flex-wrap:wrap}
+  .btn{font-size:14px;font-weight:600;padding:13px 22px;border-radius:10px;cursor:pointer;border:1px solid var(--ink);background:var(--ink);color:#fff;transition:.18s}
+  .btn:hover{background:#000;transform:translateY(-1px)}
+  .btn.ghost{background:none;color:var(--ink)}
+  .btn.ghost:hover{background:var(--alt);transform:none}
+  .btn.primary{background:linear-gradient(145deg,#dd0505,#a80000);border-color:var(--red-dk);box-shadow:0 6px 18px rgba(204,0,0,.3)}
+  .btn.primary:hover{background:linear-gradient(145deg,#e81010,#b00000);transform:translateY(-1px)}
+  .btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
+  /* ---------- Grids & cards ---------- */
+  .grid{display:grid;gap:18px}
+  .g2{grid-template-columns:repeat(2,1fr)}
+  .g3{grid-template-columns:repeat(3,1fr)}
+  .g4{grid-template-columns:repeat(4,1fr)}
+  .card{background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:22px;box-shadow:var(--shadow);transition:box-shadow .2s}
+  .flow-band{margin:60px 0 0;padding:36px;background:linear-gradient(160deg,#333,#1d1d1d);color:#fff;border-radius:20px;position:relative;overflow:hidden}
+  .flow-band::before{content:"";position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--red),transparent 70%)}
+  .flow-band h2{color:#fff}
+  .steps{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-top:8px}
+  .step{background:rgba(255,255,255,.055);border:1px solid rgba(255,255,255,.13);border-radius:12px;padding:16px;transition:.2s}
+  .step:hover{background:rgba(255,255,255,.1)}
+  .step .n{color:var(--red);font-weight:700;font-size:13px;background:#fff;width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin-bottom:10px}
+  .step p{font-size:13px;color:#e8e8e8}
+  /* ---------- Poles ---------- */
+  .pole{border-left:4px solid var(--red)}
+  .pole h3{margin-bottom:3px}
+  .pole .cnt{font-size:12px;color:var(--muted);margin-bottom:12px}
+  .members{display:flex;flex-wrap:wrap;gap:7px}
+  .chip{font-size:12.5px;background:var(--alt);border:1px solid var(--line);border-radius:20px;padding:4px 12px 4px 4px;color:#333;display:inline-flex;align-items:center;gap:7px}
+  .chip .mini{width:22px;height:22px;border-radius:50%;object-fit:cover;flex:none;background:#fff}
+  .chip.lead{background:var(--head);color:#fff;border-color:var(--head)}
+  .chip.ctrl{border-color:var(--red);color:var(--red-dk)}
+  /* ---------- Agents ---------- */
+  .filters{display:flex;flex-wrap:wrap;gap:8px;margin:6px 0 26px}
+  .filters button{font-size:13px;padding:7px 14px;border-radius:20px;border:1px solid var(--line);background:#fff;cursor:pointer;color:#4a4844;transition:.15s}
+  .filters button:hover{border-color:#bbb}
+  .filters button.active{background:var(--ink);color:#fff;border-color:var(--ink)}
+  .agrid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+  .agent{border:1px solid var(--line);border-radius:var(--r);padding:18px;background:#fff;cursor:pointer;transition:.2s;box-shadow:var(--shadow)}
+  .agent:hover{transform:translateY(-3px);border-color:#d2cfcb;box-shadow:var(--shadow-lg)}
+  .agent .top{display:flex;align-items:center;gap:12px}
+  .av{width:50px;height:50px;border-radius:50%;background:var(--alt);color:#fff;font-weight:700;display:flex;align-items:center;justify-content:center;font-size:16px;flex:none;overflow:hidden;border:2px solid var(--line)}
+  .av img{width:100%;height:100%;object-fit:cover;display:block}
+  .agent.dir .av,.agent.ctrl .av{border-color:var(--red)}
+  .agent .nm{font-weight:700;font-size:15.5px;color:var(--head);line-height:1.15}
+  .agent .rl{font-size:12.5px;color:var(--muted)}
+  .agent .tags{display:flex;gap:6px;margin:12px 0 0;flex-wrap:wrap}
+  .tag{font-size:10.5px;letter-spacing:.4px;text-transform:uppercase;font-weight:700;padding:3px 8px;border-radius:5px;background:var(--alt);color:#5a5854}
+  .tag.lead{background:var(--red-soft);color:var(--red-dk)}
+  .tag.ctrl{background:var(--red);color:#fff}
+  .agent .mission{font-size:13.5px;color:#4a4844;margin-top:12px;max-height:0;overflow:hidden;transition:max-height .3s ease;opacity:0}
+  .agent.open .mission{max-height:600px;opacity:1;margin-top:14px;padding-top:14px;border-top:1px solid var(--line)}
+  .agent .mission ul{margin:9px 0 0 16px}
+  .agent .mission li{margin-bottom:4px}
+  /* ---------- Dashboard ---------- */
+  .kpi{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+  .kpi .card{padding:18px}
+  .kpi b{font-size:26px;color:var(--head);letter-spacing:-.5px;display:block;font-variant-numeric:tabular-nums}
+  .kpi .lbl{font-size:12px;color:var(--muted)}
+  .kpi .delta{font-size:12px;font-weight:600;margin-top:6px}
+  .up{color:var(--ok)} .down{color:var(--red)}
+  .board{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:8px}
+  .col h4{font-size:13px;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);margin-bottom:10px;display:flex;justify-content:space-between}
+  .col h4 span{background:var(--alt);border-radius:12px;padding:1px 8px;color:#5a5854}
+  .deal{background:#fff;border:1px solid var(--line);border-radius:10px;padding:11px 12px;margin-bottom:9px;box-shadow:0 1px 2px rgba(0,0,0,.04);transition:.15s}
+  .deal:hover{transform:translateY(-2px);box-shadow:var(--shadow)}
+  .deal .c{font-weight:600;font-size:13.5px}
+  .deal .m{font-size:12px;color:var(--muted);display:flex;justify-content:space-between;margin-top:4px}
+  table{width:100%;border-collapse:collapse;font-size:13.5px}
+  th,td{text-align:left;padding:11px 12px;border-bottom:1px solid var(--line)}
+  th{font-size:11.5px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);font-weight:700}
+  tr:nth-child(even) td{background:var(--alt)}
+  .cash td:last-child,.cash th:last-child{text-align:right}
+  .pill{font-size:11px;font-weight:700;padding:3px 9px;border-radius:20px}
+  .pill.ok{background:#e7f4ec;color:var(--ok)}
+  .pill.al{background:var(--red-soft);color:var(--red-dk)}
+  .note{font-size:12.5px;color:var(--muted);margin-top:14px;font-style:italic}
+  /* ---------- Flows ---------- */
+  .flow{border:1px solid var(--line);border-radius:var(--r);overflow:hidden;box-shadow:var(--shadow);background:#fff;transition:.2s}
+  .flow:hover{transform:translateY(-2px);box-shadow:var(--shadow-lg)}
+  .flow .fh{display:flex;align-items:center;gap:12px;padding:16px 18px;background:var(--soft);border-bottom:1px solid var(--line)}
+  .flow .fn{width:30px;height:30px;border-radius:9px;background:linear-gradient(145deg,#dd0505,#a80000);color:#fff;font-weight:700;display:flex;align-items:center;justify-content:center;flex:none}
+  .flow .fb{padding:16px 18px;font-size:13.5px}
+  .flow .who{font-size:12px;color:var(--muted)}
+  .flow .val{display:inline-block;margin-top:10px;font-size:11.5px;font-weight:700;color:var(--red-dk);background:var(--red-soft);padding:3px 9px;border-radius:6px}
+  /* ---------- KB / Rules / Guide ---------- */
+  .kb dt{font-weight:700;color:var(--head);margin-top:16px}
+  .kb dd{margin:4px 0 0;color:#4a4844;font-size:14px}
+  .rules{counter-reset:r}
+  .rule{display:flex;gap:16px;padding:16px 0;border-bottom:1px solid var(--line)}
+  .rule .ic{width:34px;height:34px;flex:none;border-radius:9px;background:var(--head);color:#fff;font-weight:700;display:flex;align-items:center;justify-content:center;counter-increment:r}
+  .rule .ic::before{content:counter(r)}
+  .rule b{color:var(--head)}
+  .guide-step{display:flex;gap:16px;padding:16px 0;border-bottom:1px solid var(--line)}
+  .guide-step:last-child{border-bottom:none}
+  .guide-step .gn{width:32px;height:32px;flex:none;border-radius:50%;background:linear-gradient(145deg,#dd0505,#a80000);color:#fff;font-weight:700;display:flex;align-items:center;justify-content:center}
+  .guide-step h3{margin-bottom:4px}
+  .guide-step p{font-size:14px;color:#4a4844}
+  .tree{font-family:"SF Mono",Menlo,Consolas,monospace;font-size:12.5px;line-height:1.9;white-space:pre;overflow-x:auto;color:#5a5854;background:var(--soft);border:1px solid var(--line);border-radius:11px;padding:16px}
+  .tree .root{color:var(--head);font-weight:700}
+  .tree b{color:var(--ink);font-weight:600}
+  .tree i{color:var(--muted);font-style:normal}
+  footer{border-top:1px solid var(--line);margin-top:40px;background:var(--soft)}
+  .foot{max-width:1220px;margin:0 auto;padding:28px 24px;display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;font-size:13px;color:var(--muted)}
+  /* ---------- ATELIER ---------- */
+  .studio{display:grid;grid-template-columns:1.02fr .98fr;gap:22px;align-items:start}
+  .studio-left{display:flex;flex-direction:column;gap:18px}
+  .stepnum{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;background:var(--head);color:#fff;font-size:12.5px;font-weight:700;margin-right:9px;vertical-align:-4px}
+  .dz{margin-top:16px;border:2px dashed #d8d4cf;border-radius:12px;padding:34px 22px;text-align:center;cursor:pointer;transition:.2s;background:var(--soft);position:relative}
+  .dz:hover{border-color:#b9b4ae;background:#f4f3f1}
+  .dz.over{border-color:var(--red);background:var(--red-soft);transform:scale(1.008)}
+  .dz .ic{width:52px;height:52px;margin:0 auto 12px;border-radius:14px;background:#fff;border:1px solid var(--line);display:flex;align-items:center;justify-content:center;box-shadow:var(--shadow)}
+  .dz .ic svg{width:26px;height:26px;stroke:var(--red);fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+  .dz b{display:block;font-size:15px;color:var(--head)}
+  .dz span{font-size:12.5px;color:var(--muted);display:block;margin-top:4px}
+  .flist{display:flex;flex-direction:column;gap:8px;margin-top:14px}
+  .fitem{display:flex;align-items:center;gap:11px;background:var(--soft);border:1px solid var(--line);border-radius:10px;padding:9px 12px;animation:fade .25s ease}
+  .fitem .fic{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;letter-spacing:.4px;color:#fff;flex:none}
+  .fitem .fnm{font-size:13.5px;font-weight:600;color:var(--head);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .fitem .fsz{font-size:11.5px;color:var(--muted)}
+  .fitem .fx{margin-left:auto;background:none;border:none;color:var(--muted);cursor:pointer;font-size:16px;padding:4px 8px;border-radius:6px;flex:none}
+  .fitem .fx:hover{background:var(--red-soft);color:var(--red-dk)}
+  .sugg{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0 12px}
+  .sugg button{font-size:12.5px;padding:6px 12px;border-radius:18px;border:1px solid var(--line);background:var(--soft);color:#4a4844;cursor:pointer;transition:.15s}
+  .sugg button:hover{border-color:var(--red);color:var(--red-dk);background:var(--red-soft)}
+  textarea#prompt{width:100%;border:1px solid #d8d4cf;border-radius:12px;padding:14px 16px;font-family:inherit;font-size:14.5px;line-height:1.55;resize:vertical;min-height:104px;color:var(--ink);background:#fff;transition:.15s}
+  textarea#prompt:focus{outline:none;border-color:var(--red);box-shadow:0 0 0 3px rgba(204,0,0,.09)}
+  .route{display:none;align-items:center;flex-wrap:wrap;gap:6px;margin-top:12px;font-size:12.5px;color:var(--muted)}
+  .route.on{display:flex}
+  .route .rc{display:inline-flex;align-items:center;gap:6px;background:#fff;border:1px solid var(--line);border-radius:16px;padding:3px 10px 3px 4px;font-weight:600;color:var(--head);font-size:12px}
+  .route .rc img{width:20px;height:20px;border-radius:50%}
+  .route .ra{color:#c9c5c0}
+  .sendrow{display:flex;align-items:center;gap:14px;margin-top:16px;flex-wrap:wrap}
+  .mode{font-size:11.5px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--warn);background:#fdf6e3;border:1px solid #f0e4bb;padding:4px 10px;border-radius:14px}
+  .mode.live{color:var(--ok);background:#e7f4ec;border-color:#cbe7d6}
+  .connect p{font-size:13px;color:var(--muted);margin:8px 0 12px}
+  .hookrow{display:flex;gap:8px}
+  .hookrow input{flex:1;border:1px solid #d8d4cf;border-radius:9px;padding:9px 12px;font-family:inherit;font-size:13px}
+  .hookrow input:focus{outline:none;border-color:var(--red)}
+  .hookrow .btn{padding:9px 16px}
+  .outhead{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:4px}
+  .outhead h2{margin:0}
+  .outhead button{background:none;border:none;font-size:12.5px;color:var(--muted);cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+  .outhead button:hover{color:var(--red-dk)}
+  .outbox{display:flex;flex-direction:column;gap:14px;margin-top:14px}
+  .outempty{border:1px dashed #ddd9d4;border-radius:var(--r);padding:44px 24px;text-align:center;color:var(--muted);font-size:13.5px;background:var(--soft)}
+  .outempty b{display:block;color:var(--head);font-size:15px;margin-bottom:4px}
+  .job{border:1px solid var(--line);border-radius:var(--r);background:#fff;box-shadow:var(--shadow);padding:18px;animation:fade .3s ease}
+  .job .jh{display:flex;align-items:flex-start;gap:12px}
+  .job .jic{width:40px;height:40px;border-radius:11px;background:linear-gradient(145deg,#dd0505,#a80000);color:#fff;display:flex;align-items:center;justify-content:center;flex:none;font-size:17px}
+  .job .jt{font-weight:700;font-size:14.5px;color:var(--head);line-height:1.3}
+  .job .jm{font-size:12px;color:var(--muted);margin-top:2px}
+  .job .jp{font-size:13px;color:#4a4844;background:var(--soft);border:1px solid var(--line);border-radius:9px;padding:9px 12px;margin-top:12px;font-style:italic}
+  .tl{margin-top:14px;display:flex;flex-direction:column;gap:0}
+  .tls{display:flex;gap:11px;align-items:flex-start;position:relative;padding-bottom:14px}
+  .tls:last-child{padding-bottom:0}
+  .tls::before{content:"";position:absolute;left:9px;top:20px;bottom:0;width:2px;background:var(--line)}
+  .tls:last-child::before{display:none}
+  .tls .dot{width:20px;height:20px;border-radius:50%;border:2px solid #d8d4cf;background:#fff;flex:none;position:relative;z-index:1;transition:.3s}
+  .tls.doing .dot{border-color:var(--red);animation:pulse 1.1s ease infinite}
+  .tls.done .dot{border-color:var(--ok);background:var(--ok)}
+  .tls.done .dot::after{content:"";position:absolute;left:5px;top:2px;width:5px;height:9px;border:solid #fff;border-width:0 2px 2px 0;transform:rotate(42deg)}
+  @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(204,0,0,.3)}70%{box-shadow:0 0 0 8px rgba(204,0,0,0)}100%{box-shadow:0 0 0 0 rgba(204,0,0,0)}}
+  .tls .tt{font-size:13px;color:var(--muted);padding-top:0px}
+  .tls.doing .tt{color:var(--head);font-weight:600}
+  .tls.done .tt{color:var(--head)}
+  .dlv{margin-top:14px;display:flex;align-items:center;gap:12px;border:1px solid #cbe7d6;background:#f2faf5;border-radius:11px;padding:12px 14px;animation:fade .35s ease}
+  .dlv .dic{width:38px;height:38px;border-radius:10px;background:#fff;border:1px solid #cbe7d6;display:flex;align-items:center;justify-content:center;flex:none}
+  .dlv .dic svg{width:19px;height:19px;stroke:var(--ok);fill:none;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+  .dlv .dn{font-weight:700;font-size:13.5px;color:var(--head)}
+  .dlv .ds{font-size:11.5px;color:var(--ok);font-weight:600}
+  .dlv .da{margin-left:auto;display:flex;gap:7px;flex:none}
+  .dlv .da button{font-size:12px;font-weight:700;padding:7px 13px;border-radius:8px;cursor:pointer;border:1px solid var(--ok);background:var(--ok);color:#fff;transition:.15s}
+  .dlv .da button:hover{background:#186a3b}
+  .dlv .da button.alt{background:#fff;color:var(--ok)}
+  .dlv .da button.alt:hover{background:#e7f4ec}
+  .jfiles{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+  .jfiles span{font-size:11px;font-weight:600;background:var(--alt);border:1px solid var(--line);color:#5a5854;border-radius:12px;padding:2px 9px}
+  /* ---------- Responsive ---------- */
+  @media(max-width:960px){
+    .hero{grid-template-columns:1fr;gap:30px}
+    .g3,.g4,.agrid,.kpi,.board,.steps{grid-template-columns:1fr 1fr}
+    .studio{grid-template-columns:1fr}
+    nav{display:none;position:absolute;top:100%;left:0;right:0;background:#fff;border-bottom:1px solid var(--line);flex-direction:column;padding:8px 16px;align-items:stretch}
+    nav.open{display:flex}
+    nav button{text-align:left}
+    .menu-toggle{display:block;margin-left:auto;background:none;border:1px solid var(--line);border-radius:8px;padding:8px 12px;cursor:pointer;font-size:18px}
+  }
+  @media(max-width:640px){
+    h1{font-size:31px}
+    .g2,.g3,.g4,.agrid,.kpi,.board,.steps{grid-template-columns:1fr}
+    .foot{flex-direction:column}
+    .dlv{flex-wrap:wrap}
+    .dlv .da{margin-left:50px}
+  }
+</style>
+</head>
+<body>
+<header>
+  <div class="bar">
+    <a class="logo" href="#" onclick="go('home');return false">
+      <span class="mark"></span>
+      <span>Swiss Solar System<small>Cellule IA opérationnelle · v3</small></span>
+    </a>
+    <button class="menu-toggle" onclick="document.getElementById('nav').classList.toggle('open')">☰</button>
+    <nav id="nav">
+      <button data-p="home" class="active" onclick="go('home')">Vue d'ensemble</button>
+      <button data-p="studio" class="hot" onclick="go('studio')">Atelier</button>
+      <button data-p="guide" onclick="go('guide')">Prise en main</button>
+      <button data-p="org" onclick="go('org')">Organigramme</button>
+      <button data-p="agents" onclick="go('agents')">Agents</button>
+      <button data-p="dash" onclick="go('dash')">Tableau de bord</button>
+      <button data-p="flows" onclick="go('flows')">Flux 24/7</button>
+      <button data-p="kb" onclick="go('kb')">Base de connaissance</button>
+      <button data-p="rules" onclick="go('rules')">Règles d'or</button>
+    </nav>
+  </div>
+</header>
+
+<main>
+<!-- HOME -->
+<section id="home" class="page active">
+  <div class="hero-wrap">
+  <div class="hero">
+    <div>
+      <div class="eyebrow">Cellule IA · Swiss Solar System</div>
+      <h1>Une équipe d'agents qui prépare tout.<br>Vous décidez.</h1>
+      <p class="lead">44 agents spécialisés, organisés en 9 pôles plus une couche de pilotage, coordonnés par un orchestrateur unique. Ils lisent, analysent, chiffrent et rédigent en continu. Aucune action sensible — envoi, paiement, signature — n'a lieu sans votre validation explicite.</p>
+      <div class="btnrow">
+        <button class="btn primary" onclick="go('studio')">Ouvrir l'Atelier →</button>
+        <button class="btn ghost" onclick="go('agents')">Explorer les 44 agents</button>
+        <button class="btn ghost" onclick="go('dash')">Tableau de bord</button>
+      </div>
+    </div>
+    <div class="stats">
+      <div class="stat"><b data-count="44">0</b><span>agents spécialisés</span></div>
+      <div class="stat"><b data-count="9">0</b><span>pôles + pilotage</span></div>
+      <div class="stat"><b data-count="10">0</b><span>flux automatisés 24/7</span></div>
+      <div class="stat"><b data-count="1">0</b><span>point d'entrée : Victor</span></div>
+    </div>
+  </div>
+  </div>
+
+  <div class="flow-band">
+    <h2>Principe de fonctionnement</h2>
+    <p style="color:#e2e2e2;max-width:680px;margin-bottom:22px">Vous ne parlez qu'à Victor. Il route, découpe, coordonne et vous remet un livrable unique et prêt à l'usage.</p>
+    <div class="steps">
+      <div class="step"><div class="n">1</div><p>Victor lit la demande, identifie le pôle, découpe si besoin.</p></div>
+      <div class="step"><div class="n">2</div><p>Le pôle produit le travail.</p></div>
+      <div class="step"><div class="n">3</div><p>Un contrôleur intervient sur les domaines à risque.</p></div>
+      <div class="step"><div class="n">4</div><p>Diane valide la cohérence globale.</p></div>
+      <div class="step"><div class="n">5</div><p>Vous seul déclenchez l'action finale.</p></div>
+    </div>
+  </div>
+
+  <div style="margin-top:56px">
+    <div class="eyebrow">Nouveautés v3</div>
+    <h2>Ce que cette version ajoute</h2>
+    <div class="grid g4" style="margin-top:8px">
+      <div class="card"><h3>Atelier intégré</h3><p class="muted" style="font-size:13.5px;margin-top:8px">Un guichet unique : déposez vos dossiers, écrivez votre demande, récupérez le livrable. Directement dans cette page.</p></div>
+      <div class="card"><h3>Couche de pilotage</h3><p class="muted" style="font-size:13.5px;margin-top:8px">Alex (commercial), Mathieu (trésorerie), Inès (KPI) et un Comité de Direction pour les décisions importantes.</p></div>
+      <div class="card"><h3>Contrôleurs allégés</h3><p class="muted" style="font-size:13.5px;margin-top:8px">Réduits aux domaines à risque : Thomas, Denis, Gérard et Diane. Moins de doublons, flux plus rapides.</p></div>
+      <div class="card"><h3>Enrichissements ciblés</h3><p class="muted" style="font-size:13.5px;margin-top:8px">Justine (mémoire client), Guillaume (juridique), Sonia absorbe l'optimisation achats, David le SAV préventif.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ATELIER -->
+<section id="studio" class="page">
+  <div class="sec-intro">
+    <div class="eyebrow">Atelier · Guichet unique</div>
+    <h1>Déposez. Demandez. Récupérez.</h1>
+    <p class="lead">Glissez vos dossiers, écrivez votre demande en langage normal. Victor identifie le pôle, la cellule produit, Diane valide — et le livrable revient ici, prêt à l'usage.</p>
+  </div>
+  <div class="studio">
+    <div class="studio-left">
+      <div class="card">
+        <h3><span class="stepnum">1</span>Déposez vos dossiers</h3>
+        <div id="dz" class="dz">
+          <div class="ic"><svg viewBox="0 0 24 24"><path d="M12 16V4m0 0l-4 4m4-4l4 4"/><path d="M4 16v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/></svg></div>
+          <b>Glissez vos fichiers ici, ou cliquez pour parcourir</b>
+          <span>Relevés terrain, plans, factures, photos de toiture, audits — PDF, images, Excel, Word</span>
+        </div>
+        <input type="file" id="fi" multiple hidden>
+        <div id="flist" class="flist"></div>
+      </div>
+      <div class="card">
+        <h3><span class="stepnum">2</span>Écrivez votre demande</h3>
+        <div class="sugg" id="sugg"></div>
+        <textarea id="prompt" placeholder="Ex. « Prépare une offre pour la villa Trient, 12 kWc avec batterie et optimiseurs »"></textarea>
+        <div class="route" id="route"></div>
+        <div class="sendrow">
+          <button class="btn primary" id="sendbtn" onclick="submitJob()">Envoyer à Victor →</button>
+          <span class="mode" id="modeTag">Mode démonstration</span>
+        </div>
+      </div>
+      <div class="card connect">
+        <h3>Brancher la cellule réelle <span class="tag" style="vertical-align:2px">optionnel</span></h3>
+        <p>Collez l'URL du webhook n8n de la cellule : l'Atelier lui transmettra vos demandes et affichera les vrais livrables. Sans URL, l'Atelier fonctionne en démonstration et génère un gabarit de livrable au standard AN-00354.</p>
+        <div class="hookrow">
+          <input id="hook" placeholder="https://n8n.votre-domaine.ch/webhook/atelier" spellcheck="false">
+          <button class="btn ghost" onclick="saveHook()">Enregistrer</button>
+        </div>
+      </div>
+    </div>
+    <div class="studio-right">
+      <div class="outhead">
+        <h2><span class="stepnum">3</span>Vos livrables</h2>
+        <button onclick="clearJobs()">Vider l'historique</button>
+      </div>
+      <div id="outbox" class="outbox"></div>
+    </div>
+  </div>
+</section>
+
+<!-- GUIDE -->
+<section id="guide" class="page">
+  <div class="sec-intro">
+    <div class="eyebrow">Prise en main</div>
+    <h1>Comment ça marche, concrètement</h1>
+    <p class="lead">Où déposer vos dossiers, comment demander un travail, et ce qui part tout seul ou pas. Cinq points pour être opérationnel.</p>
+  </div>
+
+  <div class="grid g2" style="align-items:start">
+    <div>
+      <div class="guide-step"><div class="gn">1</div><div><h3>Où déposer vos dossiers</h3><p>Le plus simple : l'<a href="#" onclick="go('studio');return false" style="color:var(--red);font-weight:600">Atelier</a>, qui reçoit fichiers et demandes au même endroit. Sinon, chaque document a sa place dans le dossier partagé avec la cellule — organisation recommandée ci-contre.</p></div></div>
+      <div class="guide-step"><div class="gn">2</div><div><h3>Connecter vos outils</h3><p>Bexio (facturation, compta) et Infomaniak (mails) se branchent une fois. Ensuite Pierre lit les factures et Sarah trie les mails en continu, en lecture seule. n8n orchestre les flux 24/7.</p></div></div>
+      <div class="guide-step"><div class="gn">3</div><div><h3>Comment demander un travail</h3><p>Vous écrivez à Victor en langage normal : « prépare une offre pour la villa Trient », « fais le point cash », « relance les offres en attente ». Il route vers le bon pôle et vous répond avec un livrable prêt.</p></div></div>
+      <div class="guide-step"><div class="gn">4</div><div><h3>Ce qui part tout seul, ce que vous validez</h3><p>Rien de sensible ne part sans vous. La cellule prépare tout ; vous cliquez pour envoyer, payer ou signer. Les alertes et brouillons, eux, arrivent automatiquement.</p></div></div>
+      <div class="guide-step"><div class="gn">5</div><div><h3>Deux modes d'usage</h3><p><b>Interactif</b> : vous demandez, l'agent produit en direct. <b>Autonome</b> : n8n tourne 24/7 et vous soumet uniquement ce qui demande une décision.</p></div></div>
+    </div>
+    <div class="card" style="position:sticky;top:88px">
+      <h3 style="color:var(--red);margin-bottom:4px">Où mettre quoi</h3>
+      <p class="muted" style="font-size:12.5px;margin-bottom:14px">Structure de dossiers recommandée</p>
+      <div class="tree">
+<span class="root">📁 Swiss Solar System</span>
+├── 📁 <b>Clients</b>            <i>fiches, échanges, mémoire client</i>
+├── 📁 <b>Offres</b>             <i>offres émises (PDF AN-00354)</i>
+├── 📁 <b>Audits</b>             <i>relevés terrain, audits bâtiment</i>
+├── 📁 <b>Avant-projets</b>      <i>dossiers de permis</i>
+├── 📁 <b>Factures</b>          <i>entrantes et sortantes (Bexio)</i>
+├── 📁 <b>Contrats</b>          <i>clients, RH, maintenance</i>
+├── 📁 <b>Subventions</b>       <i>Pronovo &amp; cantonales</i>
+├── 📁 <b>Régies</b>            <i>plannings, CR, PowerPoint</i>
+└── 📁 <b>Base de connaissance</b>  <i>standards, modèles (Éric)</i>
+      </div>
+      <p class="note" style="margin-top:14px">La base de connaissance est la source de vérité : vous la consultez, Éric la maintient. Vous n'y déposez pas vos dossiers de travail.</p>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:26px;border-left:4px solid var(--red)">
+    <h3>Une règle avant tout</h3>
+    <p style="margin-top:8px;color:#4a4844">Vous restez le seul à décider. Les agents lisent, analysent, chiffrent et rédigent en continu — mais l'envoi, le paiement, la signature et la publication passent toujours par votre validation explicite.</p>
+  </div>
+</section>
+
+<!-- ORG -->
+<section id="org" class="page">
+  <div class="sec-intro">
+    <div class="eyebrow">Structure</div>
+    <h1>Organigramme</h1>
+    <p class="lead">Neuf pôles opérationnels, une couche de direction et pilotage, et une antenne Afrique dormante. Les leads portent chaque pôle ; les contrôleurs n'interviennent que sur les domaines à risque.</p>
+  </div>
+  <div id="poles" class="grid g3"></div>
+</section>
+
+<!-- AGENTS -->
+<section id="agents" class="page">
+  <div class="sec-intro">
+    <div class="eyebrow">L'équipe</div>
+    <h1>Les 44 agents</h1>
+    <p class="lead">Cliquez sur un agent pour déplier sa mission et son périmètre. Filtrez par pôle.</p>
+  </div>
+  <div id="filters" class="filters"></div>
+  <div id="agrid" class="agrid"></div>
+</section>
+
+<!-- DASHBOARD -->
+<section id="dash" class="page">
+  <div class="sec-intro">
+    <div class="eyebrow">Pilotage</div>
+    <h1>Tableau de bord</h1>
+    <p class="lead">Gabarit du tableau de bord vivant. Les chiffres ci-dessous sont des exemples illustratifs : une fois branché à Bexio et Infomaniak, Inès et Mathieu les alimentent automatiquement.</p>
+  </div>
+
+  <h2>KPI de la semaine · Inès</h2>
+  <div class="kpi">
+    <div class="card"><span class="lbl">CA signé (mois)</span><b>184 200 CHF</b><span class="delta up">▲ 12% vs S-1</span></div>
+    <div class="card"><span class="lbl">CA facturé</span><b>142 600 CHF</b><span class="delta up">▲ 6%</span></div>
+    <div class="card"><span class="lbl">CA encaissé</span><b>128 900 CHF</b><span class="delta down">▼ 4%</span></div>
+    <div class="card"><span class="lbl">Marge moyenne</span><b>21,4 %</b><span class="delta up">▲ 0,8 pt</span></div>
+  </div>
+  <div class="kpi" style="margin-top:14px">
+    <div class="card"><span class="lbl">Taux de transformation</span><b>32 %</b><span class="delta up">▲ 3 pts</span></div>
+    <div class="card"><span class="lbl">Délai moyen d'une offre</span><b>1,8 j</b><span class="delta up">cible &lt; 24h après données</span></div>
+    <div class="card"><span class="lbl">Délai émission → signature</span><b>19 j</b><span class="delta down">▼ 2 j</span></div>
+    <div class="card"><span class="lbl">Offres en attente</span><b>27</b><span class="delta">dont 9 à relancer</span></div>
+  </div>
+
+  <h2 style="margin-top:44px">Point cash quotidien · Mathieu</h2>
+  <div class="card" style="padding:0;overflow:hidden">
+    <table class="cash">
+      <thead><tr><th>Poste</th><th>Échéance</th><th>Statut</th><th>Montant</th></tr></thead>
+      <tbody>
+        <tr><td>Trésorerie disponible</td><td>Aujourd'hui</td><td><span class="pill ok">Disponible</span></td><td>63 400 CHF</td></tr>
+        <tr><td>Encaissements attendus (semaine)</td><td>7 j</td><td><span class="pill ok">Prévu</span></td><td>+ 41 200 CHF</td></tr>
+        <tr><td>Factures fournisseurs à régler</td><td>12 août</td><td><span class="pill al">À valider</span></td><td>− 22 800 CHF</td></tr>
+        <tr><td>Salaires</td><td>25 août</td><td><span class="pill ok">Planifié</span></td><td>− 34 500 CHF</td></tr>
+        <tr><td>TVA trimestrielle</td><td>31 août</td><td><span class="pill al">À provisionner</span></td><td>− 11 900 CHF</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="note">Alerte anticipée type : « besoin de 28 400 CHF d'ici le 18 août ». Projection à 30 et 60 jours consolidée chaque matin (Bexio + banque).</p>
+
+  <h2 style="margin-top:44px">Pipeline · Léa &amp; Manon</h2>
+  <div class="board" id="pipeline"></div>
+  <p class="note">Chaque offre porte un statut, un prochain pas et une échéance. Kevin prépare les relances J+3 / J+7 / J+14 ; vous déclenchez l'envoi.</p>
+</section>
+
+<!-- FLOWS -->
+<section id="flows" class="page">
+  <div class="sec-intro">
+    <div class="eyebrow">Automatisation 24/7</div>
+    <h1>Les 10 flux n8n</h1>
+    <p class="lead">Moteur n8n hébergé en Suisse ou UE (LPD), cerveau API Claude, sources Infomaniak et Bexio. Chaque action sensible passe par une validation. n8n travaille pendant que vous dormez, sans jamais agir seul sur l'envoi ou le paiement.</p>
+  </div>
+  <div id="flowgrid" class="grid g2"></div>
+</section>
+
+<!-- KB -->
+<section id="kb" class="page">
+  <div class="sec-intro">
+    <div class="eyebrow">Source unique de vérité</div>
+    <h1>Base de connaissance</h1>
+    <p class="lead">Maintenue par Éric. Aucun agent ne réinvente ce qui est déjà décidé. Toute mise à jour est validée avant intégration.</p>
+  </div>
+  <div class="grid g2">
+    <div class="card">
+      <h3 style="color:var(--red)">Standard graphique AN-00354</h3>
+      <dl class="kb">
+        <dt>Typographie</dt><dd>Helvetica · Liberation Sans pour les caractères spéciaux · apostrophe suisse U+2019.</dd>
+        <dt>Couleurs</dt><dd>Titres #CC0000 · header #3A3A3A · lignes alternées #F5F5F5.</dd>
+        <dt>Mise en page</dt><dd>Logo 45 mm · colonnes techniques [32, 286.7, 42, 50, 74].</dd>
+        <dt>Règle offres</dt><dd>Aucun tableau dans les offres client.</dd>
+      </dl>
+    </div>
+    <div class="card">
+      <h3 style="color:var(--red)">Corrections techniques récurrentes</h3>
+      <dl class="kb">
+        <dt>Gain bifacial</dt><dd>3 à 10 % (jamais plus).</dd>
+        <dt>Rendement onduleur</dt><dd>98,2 à 98,5 %.</dd>
+        <dt>Orientation</dt><dd>Toujours l'orientation réelle du toit, pas plein sud par défaut.</dd>
+        <dt>Thermique</dt><dd>Capteur en toiture uniquement.</dd>
+      </dl>
+    </div>
+    <div class="card">
+      <h3 style="color:var(--red)">Catalogue fournisseurs</h3>
+      <dl class="kb">
+        <dt>Par défaut</dt><dd>Each Energy · MaviWatt · K2 CrossHook · SOLTOP SwissSolarRoof.</dd>
+        <dt>Restrictions</dt><dd>SolaX seulement sur projets existants · pas d'exclusivité OYSD.</dd>
+        <dt>Optimisation</dt><dd>Sonia compare en continu prix, délais et disponibilité et propose des équivalents chiffrés.</dd>
+      </dl>
+    </div>
+    <div class="card">
+      <h3 style="color:var(--red)">Grille de commissions &amp; style</h3>
+      <dl class="kb">
+        <dt>Commissions (sur HT signé)</dt><dd>Indépendant 10 % · Partenariat 6 à 7 % · Clé en Main 3,5 à 4 %.</dd>
+        <dt>Style client</dt><dd>Français sobre · vouvoiement · ton premium · aucune tournure IA · pas d'emoji ni de tiret cadratin.</dd>
+        <dt>Modèles</dt><dd>Offres, attestations, audits, avant-projets, PowerPoint régies.</dd>
+      </dl>
+    </div>
+  </div>
+</section>
+
+<!-- RULES -->
+<section id="rules" class="page">
+  <div class="sec-intro">
+    <div class="eyebrow">Valables pour tous</div>
+    <h1>Règles d'or</h1>
+    <p class="lead">Le socle non négociable partagé par chaque agent de la cellule.</p>
+  </div>
+  <div class="rules" style="max-width:820px">
+    <div class="rule"><div class="ic"></div><div><b>Human in the loop absolu.</b><br><span class="muted">Lire, analyser, préparer, rédiger, chiffrer : oui. Envoyer, payer, signer, publier, supprimer, comptabiliser : jamais sans validation explicite.</span></div></div>
+    <div class="rule"><div class="ic"></div><div><b>Standard AN-00354.</b><br><span class="muted">Helvetica, titres #CC0000, header #3A3A3A, logo 45 mm, apostrophe suisse U+2019, aucun tableau dans les offres.</span></div></div>
+    <div class="rule"><div class="ic"></div><div><b>Corrections récurrentes intégrées.</b><br><span class="muted">Gain bifacial 3 à 10 %, rendement onduleur 98,2 à 98,5 %, orientation réelle, capteur thermique en toiture uniquement.</span></div></div>
+    <div class="rule"><div class="ic"></div><div><b>Fournisseurs par défaut.</b><br><span class="muted">Each Energy, MaviWatt, K2 CrossHook, SOLTOP. SolaX seulement sur projets existants. Pas d'exclusivité OYSD.</span></div></div>
+    <div class="rule"><div class="ic"></div><div><b>Style client.</b><br><span class="muted">Français sobre, vouvoiement, jamais de tournure IA, pas d'emoji, pas de tiret cadratin.</span></div></div>
+    <div class="rule"><div class="ic"></div><div><b>Zéro contenu retiré sans autorisation.</b><br><span class="muted">Aucun élément d'un document existant supprimé sans accord explicite.</span></div></div>
+    <div class="rule"><div class="ic"></div><div><b>Exigence.</b><br><span class="muted">Chaque livrable est prêt à l'usage. Pas de à peu près.</span></div></div>
+  </div>
+</section>
+</main>
+
+<footer>
+  <div class="foot">
+    <span>Swiss Solar System — Cellule IA opérationnelle (v3) · Structure de référence</span>
+    <span>Vous seul déclenchez l'action finale.</span>
+  </div>
+</footer>
+
+<script>
+/* ---------- DATA ---------- */
+const POLES = [
+  {id:"dir", name:"Direction et pilotage", desc:"Le point d'entrée et le cerveau du dispositif."},
+  {id:"devis", name:"Devis et Offres", desc:"De la demande à l'offre prête à envoyer."},
+  {id:"audit", name:"Audit et Ingénierie", desc:"Protocoles, audits bâtiment, avant-projets, permis."},
+  {id:"pipe", name:"Pipeline et CRM", desc:"Rien ne passe à la trappe, données propres."},
+  {id:"admin", name:"Administration, Finance et Juridique", desc:"Mail, facturation, compta, contrats, risque."},
+  {id:"sav", name:"Relation Client et SAV", desc:"La voix de SSS, curatif et préventif."},
+  {id:"regies", name:"Régies et Présentations", desc:"Industrialiser la relation régies."},
+  {id:"mkt", name:"Marketing et Contenu", desc:"Notoriété, contenu, présence en ligne."},
+  {id:"conf", name:"Conformité, Subventions et Achats", desc:"La partie souvent oubliée, sécurisée."},
+  {id:"afrique", name:"Expansion Afrique", desc:"Antenne Côte d'Ivoire, dormante."}
+];
+
+const AGENTS = [
+  // Direction
+  {n:"Victor",r:"Orchestrateur",p:"dir",k:"dir",m:"Point d'entrée unique. Reçoit chaque demande, identifie les pôles, découpe, coordonne et remet un livrable unique et cohérent. Rien ne se perd.",pts:["Route vers le bon lead et le bon contrôleur","Réunit le Comité de Direction pour les décisions importantes","Ne produit pas le travail métier : coordonne et synthétise"]},
+  {n:"Alex",r:"Directeur commercial",p:"dir",k:"dir",m:"Responsable du chiffre d'affaires. Porte l'objectif mensuel (CA, marge, signatures) et pilote la conversion.",pts:["Priorise les leads, répartit les visites, arbitre les remises","Prévisions à 30, 60, 90 jours","Pilote Léa, Nora et Marc"]},
+  {n:"Mathieu",r:"Trésorerie et cash flow",p:"dir",k:"dir",m:"Vision claire et anticipée de la trésorerie chaque matin. Poste au plus fort impact vu les enjeux de liquidité.",pts:["Point cash quotidien : disponible, attendus, retards, sorties","Projection à 30 et 60 jours + alerte anticipée chiffrée","Ne déclenche jamais un paiement"]},
+  {n:"Inès",r:"KPI et tableau de bord",p:"dir",k:"dir",m:"Permet de piloter sur des chiffres, pas au feeling. Reporting complet chaque lundi.",pts:["CA signé / facturé / encaissé, marge, délais","Rentabilité par commercial et par fournisseur","Top 10 clients et partenaires, digest du lundi"]},
+  {n:"Diane",r:"Contrôle qualité final",p:"dir",k:"ctrl",m:"Dernier filtre transversal avant vous : cohérence, standards, ton, corrections récurrentes.",pts:["Valide ou renvoie avec des corrections précises","Ne laisse passer aucun « à peu près »","Membre du Comité de Direction"]},
+  {n:"Éric",r:"Gardien de la base de connaissance",p:"dir",k:"dir",m:"Maintient la source unique de vérité. Aucun agent ne réinvente ce qui est décidé.",pts:["Standards, fournisseurs, commissions, modèles","Détecte incohérences et doublons","Versionne chaque changement, validé avant intégration"]},
+  // Devis
+  {n:"Marc",r:"Chargé d'affaires (lead)",p:"devis",k:"lead",m:"Transforme une demande en offre prête à envoyer, sous 24h après données complètes.",pts:["Vérifie la complétude des données d'entrée","Coordonne Hugo, Camille, Chloé, Thomas","Garant du délai et de la complétude"]},
+  {n:"Hugo",r:"Dimensionnement",p:"devis",k:"",m:"Dimensionne l'installation : puissance, onduleur et batterie Each Energy, structure K2, production, orientation, ombrage.",pts:["Bifacial 3-10 %, rendement onduleur 98,2-98,5 %","Orientation réelle, thermique en toiture uniquement","Documente ses hypothèses pour Chloé et Thomas"]},
+  {n:"Camille",r:"Rédaction d'offre",p:"devis",k:"",m:"Produit l'offre PDF au standard AN-00354, prête à présenter.",pts:["Aucun tableau dans les offres client","Style sobre, vouvoiement, ton premium","Ne retire aucun contenu sans accord"]},
+  {n:"Chloé",r:"Marges et rentabilité",p:"devis",k:"",m:"Garantit le prix cible et la rentabilité attendue (méthode Trient AN-00354).",pts:["Vérifie le seuil de marge, intègre commissions et subventions","Signale toute offre sous le seuil","Escalade les remises exceptionnelles à Alex"]},
+  {n:"Thomas",r:"Contrôleur technique",p:"devis",k:"ctrl",m:"Valide la solidité technique des offres ET de l'audit avant sortie.",pts:["Rendements, bifacial, orientation, périmètre thermique","Cohérence prix / technique","Valide ou renvoie avec corrections précises"]},
+  // Audit
+  {n:"Julien",r:"Ingénieur audit (lead)",p:"audit",k:"lead",m:"Couvre protocoles de mesure, audits bâtiment et avant-projets/permis.",pts:["Coordonne Nadia, Franck, Lucas","Garantit la rigueur méthodologique","Contrôles par Thomas (technique) et Denis (réglementaire)"]},
+  {n:"Nadia",r:"Protocoles de mesure",p:"audit",k:"",m:"Produit les trames de relevé terrain, claires et exhaustives, pour zéro aller-retour.",pts:["Grilles adaptées au type de projet","Toiture, orientation, ombrage, tableau électrique","S'aligne sur les besoins d'Hugo et Franck"]},
+  {n:"Franck",r:"Audit bâtiment et optimisation",p:"audit",k:"",m:"Mène les audits bâtiment et produit les PDF remplissables (modèles Pully, Essertes).",pts:["Analyse état toiture et potentiel solaire","Identifie les optimisations qui renforcent l'offre","Contrôle technique par Thomas"]},
+  {n:"Lucas",r:"Avant-projet et permis",p:"audit",k:"",m:"Prépare les avant-projets et dossiers de permis (modèle Féchy).",pts:["Dossiers complets et conformes aux exigences cantonales","Suit pièces requises et délais","Contrôle réglementaire par Denis"]},
+  // Pipeline
+  {n:"Léa",r:"Responsable pipeline (lead)",p:"pipe",k:"lead",m:"Garantit que rien ne passe à la trappe et assure l'hygiène des données.",pts:["Statut, prochain pas et échéance sur chaque offre","Détecte doublons et fiches incomplètes","Alimente Inès et Alex en données propres"]},
+  {n:"Manon",r:"Suivi des offres",p:"pipe",k:"",m:"Tient le suivi complet : offres émises, transformées, taux de transformation, marges.",pts:["Statut à jour de chaque offre","Alimente l'Excel de suivi et le reporting","Signale les offres à relancer à Kevin"]},
+  {n:"Kevin",r:"Relances",p:"pipe",k:"",m:"Prépare les relances des offres en attente selon la cadence J+3, J+7, J+14.",pts:["Textes prêts, sobres, vouvoiement","Prépare — vous déclenchez l'envoi","Jamais de relance automatique"]},
+  {n:"Antoine",r:"Partenariats et apporteurs",p:"pipe",k:"",m:"Suit apporteurs et partenariats et applique la grille de commissions.",pts:["Indépendant 10 %, Partenariat 6-7 %, Clé en Main 3,5-4 %","Calcule les commissions dues","Développe le réseau d'apporteurs"]},
+  {n:"Justine",r:"Mémoire client",p:"pipe",k:"",m:"Enrichit automatiquement la fiche client à chaque interaction. Le commercial retrouve tout le contexte en un instant.",pts:["Foyer, véhicules, équipements, canal préféré, horaires","Recommandations faites, intérêts futurs (batterie 2027)","Respecte la confidentialité (LPD)"]},
+  // Admin
+  {n:"Isabelle",r:"Responsable admin (lead)",p:"admin",k:"lead",m:"Pilote l'administratif, branchée mail et ERP en lecture, jamais en action seule.",pts:["Coordonne Sarah, Pierre, Nathalie, Vincent, Guillaume, Gérard","Priorise et suit les échéances","Ne paie, signe ni comptabilise sans validation"]},
+  {n:"Sarah",r:"Boîte mail Infomaniak",p:"admin",k:"",m:"Connectée en permanence à Infomaniak, en lecture. Trie, classe, remonte ce qui compte.",pts:["Identifie factures, devis, mails importants","Digest et alertes","Aucune réponse automatique"]},
+  {n:"Pierre",r:"Facturation Bexio",p:"admin",k:"",m:"Branché Bexio : prépare, rapproche et contrôle les factures.",pts:["Brouillons en attente de validation","Ne comptabilise ni ne paie sans validation","Signale les anomalies à Gérard"]},
+  {n:"Nathalie",r:"Fiduciaire et compta",p:"admin",k:"",m:"Prépare la TVA, les notes de frais et les pièces pour la fiduciaire.",pts:["Décomptes TVA, notes de frais","Dossiers prêts à transmettre, sans pièce manquante","Ne transmet pas sans accord"]},
+  {n:"Vincent",r:"Contrats et RH",p:"admin",k:"",m:"Rédige et suit contrats et documents RH (modèle attestation véhicule, formulation neutre).",pts:["Suit échéances, renouvellements, signatures attendues","Fait relire les clauses sensibles par Guillaume","Prépare — vous signez"]},
+  {n:"Guillaume",r:"Juridique",p:"admin",k:"",m:"Couvre le risque contractuel : CGV, garanties, sous-traitance, responsabilité, recouvrement.",pts:["Relit les contrats, signale les clauses sensibles","Propose des formulations de protection","Analyse de risque interne, pas un avis d'avocat"]},
+  {n:"Gérard",r:"Contrôleur financier",p:"admin",k:"ctrl",m:"Recoupe les montants, signale écarts et anomalies, alerte sur les échéances.",pts:["Cohérence financière des livrables","Alerte paiements, TVA, créances","Valide ou renvoie avec un constat précis"]},
+  // SAV
+  {n:"Emma",r:"Responsable client (lead)",p:"sav",k:"lead",m:"Porte la voix de SSS : sobre, premium, jamais robotique.",pts:["Coordonne Laura, David, Céline","Ton cohérent et humain, traitement rapide","Aucune communication sans validation"]},
+  {n:"Laura",r:"Communication client",p:"sav",k:"",m:"Rédige mails et réponses clients en vouvoiement, ton premium.",pts:["Messages clairs, sans tournure IA ni emoji","Registre adapté au contexte","Prépare — vous envoyez"]},
+  {n:"David",r:"SAV et garanties",p:"sav",k:"",m:"Gère le SAV curatif et préventif, et anticipe les pannes par marque.",pts:["Pannes récurrentes Deye, Each, Fronius, BYD, Pylontech, Victron","Prépare procédure, check-list, pièces, temps estimé","Volet préventif : intervient avant panne"]},
+  {n:"Céline",r:"Suivi post-installation",p:"sav",k:"",m:"Assure le suivi après pose, mesure la satisfaction, détecte les seconds contrats.",pts:["Contrôle de bon fonctionnement","Détecte l'upsell (batterie, borne, maintenance)","Contribue à la fiche client de Justine"]},
+  // Régies
+  {n:"Florence",r:"Responsable régies (lead)",p:"regies",k:"lead",m:"Industrialise la relation avec les régies immobilières.",pts:["Coordonne Karim, Alice, Bruno","Canal récurrent et prévisible","Aucun engagement contractuel sans validation"]},
+  {n:"Karim",r:"Process et cadence de visites",p:"regies",k:"",m:"Organise la cadence de visites (15 à 20 sites/mois, type M&B Gérance).",pts:["Planning et tournées optimisées","Comptes rendus structurés","Rendez-vous validés avant prise de contact"]},
+  {n:"Alice",r:"Production PowerPoint et supports",p:"regies",k:"",m:"Produit les PowerPoint et supports au standard visuel SSS, prêts à présenter.",pts:["Présentations sobres et premium","Conformes à l'identité SSS et AN-00354","S'appuie sur les gabarits d'Éric"]},
+  {n:"Bruno",r:"Contrats de maintenance récurrents",p:"regies",k:"",m:"Structure et suit les contrats de maintenance récurrents.",pts:["Périmètre, fréquence, tarif","Revenu récurrent prévisible","Coordonne avec David et Guillaume"]},
+  // Marketing
+  {n:"Nora",r:"Responsable développement (lead)",p:"mkt",k:"lead",m:"Pilote la notoriété et le développement, sous coordination commerciale d'Alex.",pts:["Ligne éditoriale et plan de contenu","Coordonne Yanis et Elodie","Aligne le marketing sur les leads qualifiés"]},
+  {n:"Yanis",r:"Contenu LinkedIn, TikTok, Reels",p:"mkt",k:"",m:"Produit le contenu social : hooks, gap de curiosité, banque des 22 idées.",pts:["Format adapté à chaque plateforme","Ton crédible, jamais racoleur","Prépare — vous publiez"]},
+  {n:"Elodie",r:"Présence en ligne et site",p:"mkt",k:"",m:"Gère la présence en ligne et le site, priorité à corriger la visibilité trop faible.",pts:["SEO, fiche Google, cohérence des présences","Maintient le site à jour","Mise en ligne validée par vous"]},
+  // Conformité
+  {n:"Michel",r:"Responsable conformité (lead)",p:"conf",k:"lead",m:"Sécurise la partie souvent oubliée : conformité, subventions, achats.",pts:["Coordonne Aline, Raphaël, Sonia","Aucun projet sans son volet conformité traité","S'appuie sur Denis"]},
+  {n:"Aline",r:"Subventions Pronovo et cantonales",p:"conf",k:"",m:"Suit Pronovo et les subventions cantonales, échéances et dossiers, à intégrer dans chaque offre.",pts:["Dispositifs et conditions à jour","Alerte avant chaque échéance","Fournit les montants à Chloé"]},
+  {n:"Raphaël",r:"Conformité OIBT et normes",p:"conf",k:"",m:"Couvre la conformité OIBT, les avis d'installation et la mise en service.",pts:["Vérifie la conformité électrique","Prépare les avis d'installation","Contrôle réglementaire final par Denis"]},
+  {n:"Sonia",r:"Achats et optimisation fournisseurs",p:"conf",k:"",m:"Gère les fournisseurs et optimise activement les achats.",pts:["Compare Each, MaviWatt, SOLTOP, K2, grossistes","Détecte ruptures, hausses, délais ; propose des équivalents chiffrés","La commande est validée et passée par vous"]},
+  {n:"Denis",r:"Contrôleur réglementaire",p:"conf",k:"ctrl",m:"Garantit des délais tenus et des projets conformes (permis, OIBT, subventions).",pts:["Contrôle la conformité avant que les dossiers avancent","Vérifie les délais réglementaires","Valide ou renvoie avec les non-conformités"]},
+  // Afrique
+  {n:"Moussa",r:"Solivoire Energies (Côte d'Ivoire)",p:"afrique",k:"",m:"Antenne légère et dormante, activée uniquement sur sollicitation.",pts:["Offres locales, appels d'offres, montages","Adapte les standards SSS au contexte ivoirien","Reste en veille tant qu'il n'est pas activé"]}
+];
+
+const FLOWS = [
+  {who:"Mathieu", t:"Point cash quotidien", d:"Chaque matin, consolidation Bexio et banque, projection et alerte anticipée.", v:"Aucun paiement automatique"},
+  {who:"Sarah", t:"Veille mail", d:"Lecture et classement des nouveaux mails Infomaniak, digest et alertes.", v:"Aucune réponse automatique"},
+  {who:"Pierre", t:"Ingestion factures", d:"Extraction des factures, brouillon Bexio, mise en attente de validation.", v:"Jamais de paiement automatique"},
+  {who:"Manon", t:"Sync pipeline", d:"Chaque offre alimente le suivi, statut tracé.", v:"Lecture / écriture CRM"},
+  {who:"Kevin", t:"Relances", d:"Offres en attente au-delà des seuils, brouillon préparé, envoi sur clic.", v:"Envoi sur validation"},
+  {who:"Marc & Camille", t:"Génération d'offre", d:"Données en entrée, dimensionnement, PDF AN-00354, validation Diane.", v:"Remise pour revue"},
+  {who:"Justine", t:"Enrichissement client", d:"Chaque échange met à jour la fiche client automatiquement.", v:"Interne, LPD"},
+  {who:"Karim & Alice", t:"Cadence régies", d:"Planning de visites, PDF d'audit, PowerPoint, comptes rendus.", v:"Prise de RDV validée"},
+  {who:"Aline", t:"Échéances subventions", d:"Surveillance des délais Pronovo et cantonaux, alerte avant échéance.", v:"Dépôt validé"},
+  {who:"Inès", t:"KPI hebdo", d:"Chaque lundi, tableau de bord complet consolidé.", v:"Digest automatique"}
+];
+
+const PIPELINE = [
+  {col:"Offres émises", deals:[{c:"Villa Trient",m:"48 200 CHF · 22%"},{c:"Régie M&B — 3 sites",m:"131 000 CHF · 19%"},{c:"Ferme Essertes",m:"27 400 CHF · 24%"}]},
+  {col:"Relance en cours", deals:[{c:"Duplex Pully",m:"J+7 · 33 100 CHF"},{c:"Villa Féchy",m:"J+14 · 41 900 CHF"}]},
+  {col:"En négociation", deals:[{c:"Immeuble Lausanne",m:"88 500 CHF · 18%"},{c:"Villa Morges",m:"36 200 CHF · 23%"}]},
+  {col:"Signées (mois)", deals:[{c:"Villa Gland",m:"52 800 CHF ✓"},{c:"Atelier Nyon",m:"44 300 CHF ✓"},{c:"Villa Rolle",m:"39 700 CHF ✓"}]}
+];
+
+
+
+/* ---------- AVATARS (SVG procéduraux, légers) ---------- */
+const FEM = new Set(["Diane","Inès","Camille","Chloé","Nadia","Léa","Manon","Justine","Isabelle","Sarah","Nathalie","Emma","Laura","Céline","Florence","Alice","Nora","Elodie","Aline","Sonia"]);
+const SKINS = ["#f3c6a8","#eab28e","#dda07e","#c98a64"];
+const HAIRC = ["#2b2018","#4a332a","#6b4a33","#8a6242","#1c1c1c","#a8743f","#59422f","#7d7d7d"];
+const CLOTH = ["#3A3A3A","#CC0000","#54595f","#2f4858","#8a2525","#444b54","#26323c","#5c5148"];
+const BGSOFT = ["#f4ece5","#edf0f4","#f2eee4","#ecf2ee","#f4edef","#eef0f6","#f3efe9","#eaf1f2"];
+function h32(s){let h=2166136261;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619)}return h>>>0}
+function avatar(name){
+  const h=h32(name), fem=FEM.has(name);
+  const skin = name==="Moussa" ? "#8d5a3c" : SKINS[h%SKINS.length];
+  const hair = name==="Moussa" ? "#161311" : HAIRC[(h>>3)%HAIRC.length];
+  const cloth = CLOTH[(h>>6)%CLOTH.length];
+  const bg = BGSOFT[(h>>9)%BGSOFT.length];
+  const glasses = (h>>12)%4===0;
+  const v = (h>>15)%3; /* variante coiffure */
+  let back="", top="";
+  if(fem){
+    if(v===0){ back=`<rect x="18" y="15" width="28" height="34" rx="13" fill="${hair}"/>`; }
+    else if(v===1){ back=`<rect x="19.5" y="15" width="25" height="24" rx="12" fill="${hair}"/>`; }
+    else { back=`<circle cx="32" cy="11.5" r="4.6" fill="${hair}"/>`; }
+    top=`<path d="M32 12.6c7.6 0 12.4 5.6 12.4 13.2 0 .9-.05 1.7-.15 2.4-1-3.6-2.3-5.6-4.35-6.7-2 1.3-4.8 2-7.9 2s-5.9-.7-7.9-2c-2.05 1.1-3.35 3.1-4.35 6.7-.1-.7-.15-1.5-.15-2.4 0-7.6 4.8-13.2 12.4-13.2z" fill="${hair}"/>`;
+  } else {
+    if(v===0){ top=`<path d="M32 12.6c7.6 0 12.4 5.6 12.4 13.2 0 .8-.04 1.5-.13 2.2-.9-3.4-2.2-5.3-4.17-6.4-2 1.3-4.9 2-8.1 2s-6.1-.7-8.1-2c-1.97 1.1-3.27 3-4.17 6.4-.09-.7-.13-1.4-.13-2.2 0-7.6 4.8-13.2 12.4-13.2z" fill="${hair}"/>`; }
+    else if(v===1){ top=`<path d="M32 13.4c7 0 11.6 5 11.6 12.2 0 .5-.02 1-.07 1.4-.8-2.9-1.9-4.5-3.63-5.5-1.9 1.2-4.7 1.9-7.9 1.9s-6-.7-7.9-1.9c-1.73 1-2.83 2.6-3.63 5.5-.05-.4-.07-.9-.07-1.4 0-7.2 4.6-12.2 11.6-12.2z" fill="${hair}" opacity=".92"/>`; }
+    else { top=`<path d="M32 12.2c7.9 0 12.8 5.8 12.8 13.6 0 1.1-.07 2-.2 2.8-1.1-3.9-2.5-6-4.7-7.2-2 1.4-4.8 2.1-7.9 2.1s-5.9-.7-7.9-2.1c-2.2 1.2-3.6 3.3-4.7 7.2-.13-.8-.2-1.7-.2-2.8 0-7.8 4.9-13.6 12.8-13.6z" fill="${hair}"/>`; }
+  }
+  const gl = glasses ? `<g stroke="#26221e" stroke-width="1.3" fill="none" opacity=".85"><circle cx="26.6" cy="25.6" r="3.9"/><circle cx="37.4" cy="25.6" r="3.9"/><path d="M30.5 25.2h3"/></g>` : "";
+  const collar = fem ? "" : `<path d="M28 46.5l4 4 4-4v3h-8z" fill="#fff" opacity=".22"/>`;
+  const svg =
+`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="96" height="96">
+<rect width="64" height="64" fill="${bg}"/>
+${back}
+<path d="M9 64c1.6-11.5 10.6-16.5 23-16.5S53.4 52.5 55 64z" fill="${cloth}"/>
+${collar}
+<path d="M27.5 34h9v9.5a4.5 4.5 0 0 1-9 0z" fill="${skin}"/>
+<path d="M27.5 34h9v4.2c-1.4.9-2.9 1.3-4.5 1.3s-3.1-.4-4.5-1.3z" fill="rgba(0,0,0,.12)"/>
+<circle cx="20.6" cy="26.5" r="2.1" fill="${skin}"/>
+<circle cx="43.4" cy="26.5" r="2.1" fill="${skin}"/>
+<ellipse cx="32" cy="26" rx="11.6" ry="12.6" fill="${skin}"/>
+${top}
+<circle cx="27" cy="26" r="1.35" fill="#26221e"/>
+<circle cx="37" cy="26" r="1.35" fill="#26221e"/>
+<path d="M24.8 22.6c1.3-.9 2.9-.9 4.2-.3" stroke="${hair}" stroke-width="1.1" stroke-linecap="round" fill="none" opacity=".8"/>
+<path d="M35 22.3c1.3-.6 2.9-.6 4.2.3" stroke="${hair}" stroke-width="1.1" stroke-linecap="round" fill="none" opacity=".8"/>
+<path d="M28.8 31.6q3.2 2.6 6.4 0" stroke="#b4665a" stroke-width="1.4" stroke-linecap="round" fill="none"/>
+${fem?'<circle cx="24.2" cy="29.3" r="1.5" fill="#e2836f" opacity=".35"/><circle cx="39.8" cy="29.3" r="1.5" fill="#e2836f" opacity=".35"/>':''}
+${gl}
+</svg>`;
+  return "data:image/svg+xml;utf8,"+encodeURIComponent(svg);
+}
+const AV = {};
+
+/* ---------- RENDER ---------- */
+function poleName(id){return (POLES.find(p=>p.id===id)||{}).name||id}
+
+function renderPoles(){
+  const el=document.getElementById('poles');
+  el.innerHTML=POLES.map(p=>{
+    const mem=AGENTS.filter(a=>a.p===p.id);
+    return `<div class="card pole">
+      <h3>${p.name}</h3>
+      <div class="cnt">${mem.length} agent${mem.length>1?'s':''} · ${p.desc}</div>
+      <div class="members">${mem.map(a=>`<span class="chip ${a.k==='lead'?'lead':''} ${a.k==='ctrl'?'ctrl':''}"><img class="mini" src="${AV[a.n]}" alt="">${a.n}${a.k==='lead'?' ★':''}${a.k==='ctrl'?' ⚑':''}</span>`).join('')}</div>
+    </div>`;
+  }).join('');
+}
+
+function renderFilters(){
+  const el=document.getElementById('filters');
+  let html=`<button class="active" data-f="all" onclick="filterAgents('all',this)">Tous · ${AGENTS.length}</button>`;
+  html+=POLES.map(p=>{const c=AGENTS.filter(a=>a.p===p.id).length;return `<button data-f="${p.id}" onclick="filterAgents('${p.id}',this)">${p.name} · ${c}</button>`}).join('');
+  el.innerHTML=html;
+}
+
+function agentCard(a){
+  const cls=a.k==='dir'?'dir':a.k==='ctrl'?'ctrl':'';
+  let tags='';
+  if(a.k==='lead')tags+='<span class="tag lead">Lead</span>';
+  if(a.k==='ctrl')tags+='<span class="tag ctrl">Contrôleur</span>';
+  if(a.k==='dir')tags+='<span class="tag">Pilotage</span>';
+  tags+=`<span class="tag">${poleName(a.p)}</span>`;
+  return `<div class="agent ${cls}" data-p="${a.p}" onclick="this.classList.toggle('open')">
+    <div class="top"><div class="av"><img src="${AV[a.n]}" alt="${a.n}"></div><div><div class="nm">${a.n}</div><div class="rl">${a.r}</div></div></div>
+    <div class="tags">${tags}</div>
+    <div class="mission">${a.m}<ul>${a.pts.map(x=>`<li>${x}</li>`).join('')}</ul></div>
+  </div>`;
+}
+function renderAgents(){document.getElementById('agrid').innerHTML=AGENTS.map(agentCard).join('')}
+function filterAgents(f,btn){
+  document.querySelectorAll('#filters button').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('.agent').forEach(a=>{a.style.display=(f==='all'||a.dataset.p===f)?'':'none'});
+}
+
+function renderFlows(){
+  document.getElementById('flowgrid').innerHTML=FLOWS.map((f,i)=>`
+    <div class="flow">
+      <div class="fh"><div class="fn">${i+1}</div><div><h3>${f.t}</h3><div class="who">${f.who}</div></div></div>
+      <div class="fb">${f.d}<br><span class="val">✓ ${f.v}</span></div>
+    </div>`).join('');
+}
+
+function renderPipeline(){
+  document.getElementById('pipeline').innerHTML=PIPELINE.map(c=>`
+    <div class="col">
+      <h4>${c.col}<span>${c.deals.length}</span></h4>
+      ${c.deals.map(d=>`<div class="deal"><div class="c">${d.c}</div><div class="m"><span>${d.m}</span></div></div>`).join('')}
+    </div>`).join('');
+}
+
+/* ---------- ATELIER ---------- */
+const store = {
+  get(k,d){ try{const v=localStorage.getItem('sss_'+k);return v?JSON.parse(v):d}catch(e){return d} },
+  set(k,v){ try{localStorage.setItem('sss_'+k,JSON.stringify(v))}catch(e){} }
+};
+let FILES=[];
+let JOBS=store.get('jobs',[]);
+const SUGGS=[
+  "Prépare une offre pour la villa Trient, 12 kWc avec batterie",
+  "Fais le point cash du jour",
+  "Relance les offres en attente depuis plus de 7 jours",
+  "Prépare la trame d'audit bâtiment pour la régie M&B",
+  "Vérifie les subventions Pronovo pour ce projet",
+  "Rédige la réponse au client sur la garantie onduleur",
+  "Ajoute cette vidéo à la créative Meta Ads et prépare les déclinaisons"
+];
+const ROUTES=[
+  {re:/offre|devis|chiffr|dimensionn|prix|kwc|panneau|batterie|onduleur/i, pole:"devis", type:"Offre",    chain:["Victor","Marc","Thomas","Diane"]},
+  {re:/audit|relev[eé]|toiture|permis|avant-projet|mesure/i,              pole:"audit", type:"Audit",    chain:["Victor","Julien","Denis","Diane"]},
+  {re:/relance|pipeline|crm|apporteur|commission/i,                        pole:"pipe",  type:"Relance",  chain:["Victor","Léa","Diane"]},
+  {re:/cash|tr[eé]sorerie|liquidit/i,                                      pole:"dir",   type:"Point cash",chain:["Victor","Mathieu","Gérard","Diane"]},
+  {re:/facture|tva|compta|paiement|bexio/i,                                pole:"admin", type:"Finance",  chain:["Victor","Pierre","Gérard","Diane"]},
+  {re:/contrat|juridique|cgv|clause|rh /i,                                 pole:"admin", type:"Contrat",  chain:["Victor","Vincent","Guillaume","Diane"]},
+  {re:/mail|courriel|infomaniak/i,                                         pole:"admin", type:"Courrier", chain:["Victor","Sarah","Diane"]},
+  {re:/client|sav|garantie|panne|satisfaction/i,                           pole:"sav",   type:"Client",   chain:["Victor","Emma","Diane"]},
+  {re:/r[eé]gie|powerpoint|pr[eé]sentation|visite/i,                       pole:"regies",type:"Régies",   chain:["Victor","Florence","Diane"]},
+  {re:/linkedin|tiktok|instagram|meta ?ads?|facebook|vid[eé]o|reel|cr[eé]ativ|publicit|campagne|contenu|seo|marketing/i, pole:"mkt", type:"Créative Meta Ads", chain:["Victor","Nora","Yanis","Diane"]},
+  {re:/subvention|pronovo|oibt|conformit[eé]|achat|fournisseur/i,          pole:"conf",  type:"Conformité",chain:["Victor","Michel","Denis","Diane"]},
+  {re:/kpi|tableau de bord|reporting/i,                                    pole:"dir",   type:"Reporting",chain:["Victor","Inès","Diane"]}
+];
+const VIDEXT=/\.(mp4|mov|avi|mkv|webm|m4v)$/i;
+function detectRoute(t,files){
+  for(const r of ROUTES){ if(r.re.test(t)) return r; }
+  if((files||[]).some(f=>VIDEXT.test(f.name||f))) return ROUTES.find(r=>r.pole==="mkt");
+  return {pole:null,type:"Livrable",chain:["Victor","Diane"]};
+}
+function fmtSize(b){ if(b>1048576)return (b/1048576).toFixed(1)+" Mo"; if(b>1024)return Math.round(b/1024)+" Ko"; return b+" o"; }
+function extColor(e){ return {pdf:"#c0392b",doc:"#2b579a",docx:"#2b579a",xls:"#217346",xlsx:"#217346",csv:"#217346",jpg:"#8e6ac0",jpeg:"#8e6ac0",png:"#8e6ac0",heic:"#8e6ac0",ppt:"#d24726",pptx:"#d24726",mp4:"#CC0000",mov:"#CC0000",webm:"#CC0000",m4v:"#CC0000",avi:"#CC0000"}[e]||"#5a5854"; }
+function addFiles(list){
+  for(const f of list){ FILES.push({name:f.name,size:f.size}); }
+  renderFiles();
+}
+function removeFile(i){ FILES.splice(i,1); renderFiles(); }
+function renderFiles(){
+  document.getElementById('flist').innerHTML=FILES.map((f,i)=>{
+    const ext=(f.name.split('.').pop()||'').toLowerCase();
+    return `<div class="fitem"><div class="fic" style="background:${extColor(ext)}">${ext.slice(0,4).toUpperCase()||'DOC'}</div>
+      <div style="min-width:0"><div class="fnm">${f.name}</div><div class="fsz">${fmtSize(f.size)}</div></div>
+      <button class="fx" onclick="removeFile(${i})" title="Retirer">✕</button></div>`;
+  }).join('');
+}
+function renderSuggs(){
+  document.getElementById('sugg').innerHTML=SUGGS.map(s=>`<button onclick="useSugg(this)">${s}</button>`).join('');
+}
+function useSugg(btn){ const t=document.getElementById('prompt'); t.value=btn.textContent; t.focus(); updateRoute(); }
+function updateRoute(){
+  const t=document.getElementById('prompt').value.trim();
+  const el=document.getElementById('route');
+  if(t.length<6){ el.classList.remove('on'); return; }
+  const r=detectRoute(t,FILES);
+  el.classList.add('on');
+  el.innerHTML='Circuit prévu : '+r.chain.map(n=>`<span class="rc"><img src="${AV[n]}" alt="">${n}</span>`).join('<span class="ra">→</span>')
+    +(r.pole?`<span style="margin-left:4px">· pôle ${poleName(r.pole)}</span>`:'');
+}
+function saveHook(){
+  const v=document.getElementById('hook').value.trim();
+  store.set('hook',v);
+  applyMode();
+}
+function applyMode(){
+  const hook=store.get('hook','');
+  document.getElementById('hook').value=hook;
+  const m=document.getElementById('modeTag');
+  if(hook){ m.textContent="Connecté à n8n"; m.classList.add('live'); }
+  else{ m.textContent="Mode démonstration"; m.classList.remove('live'); }
+}
+function stepsFor(r){
+  const s=["Victor reçoit la demande et identifie le pôle"];
+  for(const n of r.chain.slice(1,-1)){ s.push(n+" produit et contrôle le travail"); }
+  s.push("Diane valide la cohérence et le standard AN-00354");
+  s.push("Livrable prêt — à vous de décider");
+  return s;
+}
+function submitJob(){
+  const t=document.getElementById('prompt').value.trim();
+  if(!t){ document.getElementById('prompt').focus(); return; }
+  const r=detectRoute(t,FILES);
+  const job={id:Date.now(), ts:new Date().toLocaleString('fr-CH',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}),
+    prompt:t, files:FILES.map(f=>f.name), type:r.type, chain:r.chain, pole:r.pole, done:false};
+  JOBS.unshift(job);
+  document.getElementById('prompt').value=''; document.getElementById('route').classList.remove('on');
+  FILES=[]; renderFiles();
+  renderJobs();
+  const hook=store.get('hook','');
+  if(hook){ runLive(job,hook); } else { runDemo(job); }
+}
+function runDemo(job){
+  const steps=stepsFor({chain:job.chain});
+  let i=0;
+  const tick=()=>{
+    const el=document.getElementById('tl-'+job.id);
+    if(!el) return;
+    const rows=el.querySelectorAll('.tls');
+    if(i>0){ rows[i-1].classList.remove('doing'); rows[i-1].classList.add('done'); }
+    if(i<rows.length){ rows[i].classList.add('doing'); i++; setTimeout(tick, 850+Math.random()*600); }
+    else{ job.done=true; persistJobs(); renderJobs(); }
+  };
+  setTimeout(tick,300);
+}
+async function runLive(job,hook){
+  try{
+    const res=await fetch(hook,{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({prompt:job.prompt,files:job.files,type:job.type,ts:job.ts})});
+    job.response=await res.text();
+    job.done=true;
+  }catch(e){
+    job.error="Webhook injoignable ("+e.message+"). Vérifiez l'URL n8n.";
+    job.done=true;
+  }
+  persistJobs(); renderJobs();
+}
+function persistJobs(){ store.set('jobs',JOBS.slice(0,20)); }
+function clearJobs(){ JOBS=[]; persistJobs(); renderJobs(); }
+function jobIcon(t){ return {"Offre":"📄","Audit":"📐","Relance":"📮","Point cash":"💰","Finance":"🧾","Contrat":"✍️","Courrier":"✉️","Client":"🤝","Régies":"🏢","Créative Meta Ads":"🎬","Conformité":"✅","Reporting":"📊"}[t]||"📄"; }
+function renderJobs(){
+  const box=document.getElementById('outbox');
+  if(!JOBS.length){
+    box.innerHTML=`<div class="outempty"><b>Aucun livrable pour l'instant</b>Déposez vos dossiers, écrivez votre demande et envoyez : le résultat apparaîtra ici.</div>`;
+    return;
+  }
+  box.innerHTML=JOBS.map(j=>{
+    const steps=stepsFor({chain:j.chain});
+    let body='';
+    if(!j.done){
+      body=`<div class="tl" id="tl-${j.id}">${steps.map(s=>`<div class="tls"><div class="dot"></div><div class="tt">${s}</div></div>`).join('')}</div>`;
+    } else if(j.error){
+      body=`<div class="jp" style="border-color:#f2c9c9;background:var(--red-soft);color:var(--red-dk);font-style:normal">${j.error}</div>`;
+    } else {
+      const label=j.type+' — '+(clientOf(j.prompt)||'document');
+      body=`<div class="tl">${steps.map(s=>`<div class="tls done"><div class="dot"></div><div class="tt">${s}</div></div>`).join('')}</div>
+      <div class="dlv">
+        <div class="dic"><svg viewBox="0 0 24 24"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6"/></svg></div>
+        <div><div class="dn">${label}</div><div class="ds">Validé par Diane · standard AN-00354</div></div>
+        <div class="da"><button onclick="openDoc(${j.id})" class="alt">Aperçu</button><button onclick="dlDoc(${j.id})">Télécharger</button></div>
+      </div>`;
+    }
+    return `<div class="job">
+      <div class="jh"><div class="jic">${jobIcon(j.type)}</div>
+        <div style="min-width:0"><div class="jt">${j.type}${j.pole?' · '+poleName(j.pole):''}</div><div class="jm">${j.ts}</div></div></div>
+      <div class="jp">« ${j.prompt} »</div>
+      ${j.files.length?`<div class="jfiles">${j.files.map(f=>`<span>📎 ${f}</span>`).join('')}</div>`:''}
+      ${j.response?`<div class="jp" style="font-style:normal">${String(j.response).slice(0,1200)}</div>`:''}
+      ${body}
+    </div>`;
+  }).join('');
+}
+function clientOf(p){
+  const m=p.match(/(?:pour|de|du|chez|la villa|le|l')\s+(?:la |le |l')?((?:villa |régie |ferme |immeuble |duplex |atelier )?[A-ZÉÈÂÎ][\wéèêëàâîïôûüç'&-]+(?:\s+[A-ZÉÈÂÎ&][\wéèêëàâîïôûüç'&-]+){0,2})/);
+  return m?m[1].trim():null;
+}
+function buildDoc(j){
+  const client=clientOf(j.prompt)||"Client";
+  const d=new Date().toLocaleDateString('fr-CH',{day:'numeric',month:'long',year:'numeric'});
+  const files=j.files.length?`<h2>Pièces transmises</h2><p>${j.files.map(f=>"— "+f).join("<br>")}</p>`:"";
+  let core="";
+  if(j.type==="Offre"){
+    core=`<h2>Contexte et besoin</h2>
+<p>À la suite de votre demande, nous avons le plaisir de vous présenter notre proposition pour votre projet photovoltaïque. Cette offre est établie sur la base des éléments transmis et de l'orientation réelle de votre toiture.</p>
+<h2>Solution proposée</h2>
+<p>Installation dimensionnée par notre bureau technique : modules photovoltaïques haut rendement, onduleur Each Energy (rendement 98,2 à 98,5 %), structure de fixation K2 CrossHook. Le gain bifacial retenu se situe entre 3 et 10 % selon la configuration. [Dimensionnement détaillé à compléter par Hugo après analyse des relevés.]</p>
+<h2>Cadre économique</h2>
+<p>Le chiffrage détaillé, la subvention Pronovo estimée et le calcul de rentabilité figurent dans l'annexe économique. [Montants à compléter par Chloé — méthode Trient AN-00354.]</p>
+<h2>Prochaines étapes</h2>
+<p>Validation de la présente offre, planification du relevé technique complémentaire si nécessaire, puis dépôt des demandes administratives. Nous restons à votre entière disposition.</p>`;
+  } else if(j.type==="Point cash"){
+    core=`<h2>Synthèse du jour</h2>
+<p>Trésorerie disponible, encaissements attendus sous 7 jours, sorties planifiées (fournisseurs, salaires, TVA) et alerte anticipée le cas échéant. [Chiffres alimentés par Mathieu via Bexio et la banque une fois la connexion active.]</p>
+<h2>Projection</h2>
+<p>Projection consolidée à 30 et 60 jours, avec mise en évidence des points de tension et du besoin de financement éventuel.</p>`;
+  } else if(j.type==="Relance"){
+    core=`<h2>Brouillons de relance</h2>
+<p><b>J+3 :</b> Nous nous permettons de revenir vers vous au sujet de notre offre. Nous restons à votre disposition pour toute question ou précision.</p>
+<p><b>J+7 :</b> Souhaitez-vous que nous organisions un court échange téléphonique afin de passer en revue les points techniques ou financiers de notre proposition ?</p>
+<p><b>J+14 :</b> Sans retour de votre part, nous nous permettrons de clore provisoirement le dossier. Il nous ferait toutefois plaisir de le réactiver au moment qui vous conviendra.</p>
+<p><i>Rappel : vous seul déclenchez l'envoi.</i></p>`;
+  } else if(j.type==="Audit"){
+    core=`<h2>Trame de relevé terrain</h2>
+<p>Toiture : type de couverture, état, surface exploitable, orientation réelle, inclinaison, ombrages proches et lointains.</p>
+<p>Électricité : tableau, réserve de place, section d'arrivée, compteur, mise à la terre.</p>
+<p>Accès et sécurité : hauteur, moyens d'accès, points d'ancrage.</p>
+<p>[Trame complète générée par Nadia selon le type de projet.]</p>`;
+  } else if(j.type==="Créative Meta Ads"){
+    core=`<h2>Brief créatif Meta Ads</h2>
+<p>Vidéo source intégrée au plan de campagne. Hook retenu dans les 3 premières secondes, gap de curiosité, appel à l'action clair. [Analyse détaillée de la vidéo par Yanis.]</p>
+<h2>Déclinaisons prévues</h2>
+<p>Formats 9:16 (Reels, Stories), 1:1 (feed) et 16:9. Trois variantes d'accroche et deux variantes de CTA pour test A/B.</p>
+<h2>Ciblage et diffusion</h2>
+<p>Audiences propriétaires de villas et immeubles en Suisse romande, retargeting visiteurs du site, exclusion clients signés. Budget et calendrier à valider par vous. [Paramétrage préparé par Nora — la publication ne part jamais sans votre validation.]</p>`;
+  } else {
+    core=`<h2>Synthèse</h2>
+<p>Votre demande a été analysée et routée vers le pôle compétent. Ce document constitue le gabarit du livrable final. [Contenu produit par la cellule une fois connectée via n8n.]</p>`;
+  }
+  return `<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><title>${j.type} — ${client}</title>
+<style>body{font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;color:#1f1f1f;max-width:760px;margin:0 auto;padding:48px 32px;line-height:1.6}
+.head{background:#3A3A3A;color:#fff;padding:18px 24px;border-radius:6px;display:flex;justify-content:space-between;align-items:center;margin-bottom:36px}
+.head b{font-size:17px}.head span{font-size:12px;opacity:.85}
+h1{color:#CC0000;font-size:26px;letter-spacing:-.5px;margin:0 0 6px}
+h2{color:#CC0000;font-size:16px;margin:28px 0 8px}
+.meta{color:#6c6c6c;font-size:13px;margin-bottom:8px}
+.demo{margin-top:44px;padding:12px 16px;background:#F5F5F5;border-left:3px solid #CC0000;font-size:12px;color:#6c6c6c}</style></head><body>
+<div class="head"><b>Swiss Solar System</b><span>Cellule IA · ${d}</span></div>
+<h1>${j.type} — ${client}</h1>
+<p class="meta">Demande d'origine : « ${j.prompt} »</p>
+${core}
+${files}
+<div class="demo">Document de démonstration généré par l'Atelier de la cellule IA. Une fois l'Atelier branché sur n8n, ce livrable est produit par les agents réels, contrôlé, puis validé par Diane avant de vous être remis.</div>
+</body></html>`;
+}
+function docBlob(j){ return new Blob([buildDoc(j)],{type:"text/html;charset=utf-8"}); }
+function docName(j){
+  const c=(clientOf(j.prompt)||"document").replace(/[^\wéèêàâîôû-]+/g,"_");
+  return j.type.replace(/\s/g,"_")+"_"+c+"_"+new Date().toISOString().slice(0,10)+".html";
+}
+function openDoc(id){ const j=JOBS.find(x=>x.id===id); if(!j)return; window.open(URL.createObjectURL(docBlob(j)),"_blank"); }
+function dlDoc(id){
+  const j=JOBS.find(x=>x.id===id); if(!j)return;
+  const a=document.createElement("a"); a.href=URL.createObjectURL(docBlob(j)); a.download=docName(j);
+  document.body.appendChild(a); a.click(); a.remove();
+}
+function initStudio(){
+  const dz=document.getElementById('dz'), fi=document.getElementById('fi');
+  dz.addEventListener('click',()=>fi.click());
+  fi.addEventListener('change',e=>{ addFiles(e.target.files); fi.value=''; });
+  ['dragenter','dragover'].forEach(ev=>dz.addEventListener(ev,e=>{e.preventDefault();dz.classList.add('over')}));
+  ['dragleave','drop'].forEach(ev=>dz.addEventListener(ev,e=>{e.preventDefault();dz.classList.remove('over')}));
+  dz.addEventListener('drop',e=>{ if(e.dataTransfer&&e.dataTransfer.files.length) addFiles(e.dataTransfer.files); });
+  document.getElementById('prompt').addEventListener('input',updateRoute);
+  renderSuggs(); applyMode();
+  JOBS.forEach(j=>{ if(!j.done) j.done=true; });
+  renderJobs();
+}
+
+/* ---------- NAV ---------- */
+function go(p){
+  document.querySelectorAll('.page').forEach(s=>s.classList.remove('active'));
+  document.getElementById(p).classList.add('active');
+  document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('active',b.dataset.p===p));
+  document.getElementById('nav').classList.remove('open');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+/* ---------- INIT ---------- */
+AGENTS.forEach(a=>{ AV[a.n]=avatar(a.n); });
+renderPoles();renderFilters();renderAgents();renderFlows();renderPipeline();initStudio();
+document.querySelectorAll('.stat b[data-count]').forEach(el=>{
+  const target=+el.dataset.count; const t0=performance.now(), dur=900;
+  const step=t=>{ const k=Math.min(1,(t-t0)/dur); el.textContent=Math.round(target*(1-Math.pow(1-k,3))); if(k<1)requestAnimationFrame(step); };
+  requestAnimationFrame(step);
+});
+</script>
+</body>
+</html>
