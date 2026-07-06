@@ -527,8 +527,8 @@
       <dl class="kb">
         <dt>Typographie</dt><dd>Helvetica · Liberation Sans pour les caractères spéciaux · apostrophe suisse U+2019.</dd>
         <dt>Couleurs</dt><dd>Titres #CC0000 · header #3A3A3A · lignes alternées #F5F5F5.</dd>
-        <dt>Mise en page</dt><dd>Logo 45 mm · colonnes techniques [32, 286.7, 42, 50, 74].</dd>
-        <dt>Règle offres</dt><dd>Aucun tableau dans les offres client.</dd>
+        <dt>Mise en page</dt><dd>Logo 45 mm · colonnes techniques [32, 286.7, 42, 50, 74] · en-tête destinataire · pied de page TVA + IBAN.</dd>
+        <dt>Règle offres</dt><dd>Structure en positions chiffrées (Pos · Description · Qté · Prix unit. · Prix total), TVA 8,1 %, acomptes 40 / 40 / 20 — modèles de référence AN-00360 à AN-00362.</dd>
       </dl>
     </div>
     <div class="card">
@@ -568,7 +568,7 @@
   </div>
   <div class="rules" style="max-width:820px">
     <div class="rule"><div class="ic"></div><div><b>Human in the loop absolu.</b><br><span class="muted">Lire, analyser, préparer, rédiger, chiffrer : oui. Envoyer, payer, signer, publier, supprimer, comptabiliser : jamais sans validation explicite.</span></div></div>
-    <div class="rule"><div class="ic"></div><div><b>Standard AN-00354.</b><br><span class="muted">Helvetica, titres #CC0000, header #3A3A3A, logo 45 mm, apostrophe suisse U+2019, aucun tableau dans les offres.</span></div></div>
+    <div class="rule"><div class="ic"></div><div><b>Standard AN-00354.</b><br><span class="muted">Helvetica, titres #CC0000, header #3A3A3A, logo 45 mm, apostrophe suisse U+2019, offres en positions chiffrées selon les modèles AN-00360 à AN-00362.</span></div></div>
     <div class="rule"><div class="ic"></div><div><b>Corrections récurrentes intégrées.</b><br><span class="muted">Gain bifacial 3 à 10 %, rendement onduleur 98,2 à 98,5 %, orientation réelle, capteur thermique en toiture uniquement.</span></div></div>
     <div class="rule"><div class="ic"></div><div><b>Fournisseurs par défaut.</b><br><span class="muted">Each Energy, MaviWatt, K2 CrossHook, SOLTOP. SolaX seulement sur projets existants. Pas d'exclusivité OYSD.</span></div></div>
     <div class="rule"><div class="ic"></div><div><b>Style client.</b><br><span class="muted">Français sobre, vouvoiement, jamais de tournure IA, pas d'emoji, pas de tiret cadratin.</span></div></div>
@@ -982,21 +982,92 @@ function clientOf(p){
   const m=p.match(/(?:pour|de|du|chez|la villa|le|l')\s+(?:la |le |l')?((?:villa |régie |ferme |immeuble |duplex |atelier )?[A-ZÉÈÂÎ][\wéèêëàâîïôûüç'&-]+(?:\s+[A-ZÉÈÂÎ&][\wéèêëàâîïôûüç'&-]+){0,2})/);
   return m?m[1].trim():null;
 }
+function buildOffre(j){
+  const client=clientOf(j.prompt)||"[Client / Projet]";
+  const d=new Date(), dd=x=>String(x).padStart(2,'0');
+  const date=dd(d.getDate())+'.'+dd(d.getMonth()+1)+'.'+d.getFullYear();
+  const v=new Date(d.getTime()+30*864e5);
+  const val=dd(v.getDate())+'.'+dd(v.getMonth()+1)+'.'+v.getFullYear();
+  const kw=(j.prompt.match(/(\d+[.,]?\d*)\s*k[wW]c/)||[])[1];
+  const bat=/batter/i.test(j.prompt);
+  const micro=/micro[- ]?onduleur|atmoce/i.test(j.prompt);
+  const P="<span style='color:#b00;font-weight:600'>[\u00e0 chiffrer \u2014 Chlo\u00e9]</span>";
+  const rows=[
+    ["Modules photovolta\u00efques Full Black \u2014 MaviWatt Pulse 490 W",
+     "Fourniture des modules back contact Full Black \u2014 puissance totale install\u00e9e "+(kw?kw+" kWc":"[\u00e0 dimensionner \u2014 Hugo]")+".<br>\u2022 Aspect Full Black premium \u2014 esth\u00e9tique homog\u00e8ne<br>\u2022 Cadre aluminium anodis\u00e9 noir \u2014 garantie produit et performance selon documentation constructeur<br>\u2022 Calepinage v\u00e9rifi\u00e9 conforme \u00e0 l'implantation","[qt\u00e9]"],
+    [micro?"Micro-onduleurs ATMOCE + passerelle de monitoring":"Onduleur hybride Each Energy triphas\u00e9 + Smart Meter",
+     micro?"\u2022 Optimisation par module \u2014 suivi individuel de production<br>\u2022 Conformit\u00e9 r\u00e9seau suisse EN 50549<br>\u2022 Monitoring int\u00e9gr\u00e9":"Onduleur hybride triphas\u00e9 adapt\u00e9 \u00e0 la puissance install\u00e9e, avec compteur intelligent.<br>\u2022 Sortie triphas\u00e9e 400 V \u2014 conformit\u00e9 r\u00e9seau suisse EN 50549<br>\u2022 Smart Meter \u2014 mesure production / consommation / injection<br>\u2022 Monitoring int\u00e9gr\u00e9 \u2014 protection anti-\u00eelotage","1.00"]
+  ];
+  if(bat)rows.push(["Batterie de stockage Each Energy",
+    "Syst\u00e8me de stockage haute tension, extensible.<br>\u2022 Couplage DC \u2014 gestion intelligente de l'autoconsommation<br>\u2022 Garantie constructeur selon documentation","1.00"]);
+  rows.push(
+    ["Structure de fixation \u2014 K2 Systems",
+     "Syst\u00e8me aluminium certifi\u00e9 K2 adapt\u00e9 \u00e0 la couverture.<br>\u2022 Rails, crochets, brides, visserie inox<br>\u2022 Mise \u00e0 la terre et liaisons \u00e9quipotentielles<br>\u2022 Dimensionnement lestage/fixation selon normes SIA","1.00"],
+    ["C\u00e2blage DC / AC + protections + parafoudre",
+     "\u2022 C\u00e2bles solaires DC EN50618, connecteurs MC4, conduits<br>\u2022 Protections DC et AC, sectionnement \u2014 parafoudre type II<br>\u2022 Liaisons \u00e9quipotentielles \u2014 conformit\u00e9 NIBT / OIBT","1.00"],
+    ["Raccordement \u00e9lectrique au tableau",
+     "\u2022 Raccordement AC au tableau \u2014 adaptation selon installation existante<br>\u2022 Rep\u00e9rage et mise en conformit\u00e9 \u2014 NIBT / OIBT","1.00"],
+    ["Main-d'\u0153uvre \u2014 installation compl\u00e8te",
+     "\u2022 Pose de la structure et des modules \u2014 c\u00e2blage DC/AC<br>\u2022 Raccordements, essais et mise en service<br>\u2022 Coordination chantier et direction des travaux","1.00"],
+    ["Dossier administratif & mise en service",
+     "\u2022 Sch\u00e9mas \u00e9lectriques \u2014 annonce GRD \u2014 dossier Pronovo<br>\u2022 Rapport de mise en service \u2014 contr\u00f4le OIBT / NIBT","1.00"]);
+  const tbody=rows.map((r,i)=>`<tr${i%2?" style='background:#F5F5F5'":""}><td style="padding:8px 10px;vertical-align:top;font-weight:700">${i+1}</td><td style="padding:8px 10px;vertical-align:top"><b>${r[0]}</b><br><span style="font-size:12px;color:#333">${r[1]}</span></td><td style="padding:8px 10px;vertical-align:top;text-align:right">${r[2]}</td><td style="padding:8px 10px;vertical-align:top;text-align:right">${P}</td><td style="padding:8px 10px;vertical-align:top;text-align:right">${P}</td></tr>`).join('');
+  const title=`Installation photovolta\u00efque${kw?" \u2014 "+kw+" kWc":""}${micro?" \u2014 micro-onduleurs ATMOCE":" \u2014 onduleur hybride Each Energy"}${bat?" \u2014 batterie":""} \u2014 ${client}`;
+  return `<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><title>Offre \u2014 ${client}</title>
+<style>body{font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;color:#1f1f1f;max-width:800px;margin:0 auto;padding:40px 32px;line-height:1.5;font-size:13.5px}
+.lh{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px}
+.lh .co b{font-size:19px;letter-spacing:.5px}.lh .co b span{color:#CC0000}
+.lh .co,.lh .cl{font-size:12px;color:#444}.lh .cl{text-align:right;padding-top:24px;font-size:13px}
+.rule{height:3px;background:#CC0000;margin:14px 0 24px}
+h1{color:#CC0000;font-size:27px;letter-spacing:-.5px;margin:0 0 4px}
+.sub{font-weight:700;color:#1f1f1f;font-size:14.5px;max-width:460px}
+.meta{float:right;font-size:13px;margin-top:-46px}.meta b{display:inline-block;min-width:90px}
+table{width:100%;border-collapse:collapse;margin:20px 0 6px;font-size:13px}
+thead th{background:#3A3A3A;color:#fff;text-align:left;padding:8px 10px;font-size:11.5px;text-transform:uppercase;letter-spacing:.4px}
+thead th:nth-child(3),thead th:nth-child(4),thead th:nth-child(5){text-align:right}
+.tot{margin:14px 0;text-align:right}
+.tot .l{margin:3px 0}
+.ttc{display:inline-block;border:2px solid #c9a227;background:#fdf9ee;padding:10px 18px;font-size:17px;font-weight:700;margin-top:8px}
+h2{color:#1f1f1f;font-size:14.5px;margin:22px 0 6px}
+ul{margin:4px 0 0 18px;padding:0}li{margin-bottom:3px}
+.demo{margin-top:36px;padding:12px 16px;background:#F5F5F5;border-left:3px solid #CC0000;font-size:11.5px;color:#6c6c6c}
+.ft{margin-top:34px;border-top:1px solid #ddd;padding-top:10px;font-size:10.5px;color:#777;text-align:center}</style></head><body>
+<div class="lh"><div class="co"><b>SWISS SOLAR <span>SYSTEM</span></b><br>Rue Antoinette Quinche 4<br>1022 Chavannes-pr\u00e8s-Renens \u00b7 Suisse</div>
+<div class="cl"><b>[Destinataire]</b><br>[Contact]<br>[Adresse]<br>[NPA Localit\u00e9]</div></div>
+<div class="rule"></div>
+<h1>Offre AN-00XXX <span style="font-size:13px;color:#6c6c6c;font-weight:400">(num\u00e9ro \u00e0 attribuer)</span></h1>
+<div class="sub">${title}</div>
+<div class="meta">Date : <b>${date}</b><br>Valable jusqu'au : <b>${val}</b><br>Interlocuteur : <b>Adson Bailly</b></div>
+<p style="margin-top:18px">\u00c0 l'attention de ${client}</p>
+<p>Dans le cadre de votre projet, nous vous soumettons notre offre pour le lot \u00ab installation photovolta\u00efque \u00bb. <i>[Contexte pr\u00e9cis \u2014 implantation, pan de toiture, calepinage, coordination chantier \u2014 \u00e0 compl\u00e9ter par Marc sur la base des plans et de la visite technique.]</i> L'intervention prend en compte les raccords de toiture, le maintien de l'\u00e9tanch\u00e9it\u00e9, les passages de c\u00e2bles et la protection des \u00e9l\u00e9ments existants. Demande d'origine : \u00ab ${j.prompt} \u00bb</p>
+<table><thead><tr><th>Pos.</th><th>Description</th><th>Qt\u00e9</th><th>Prix unit.</th><th>Prix total CHF</th></tr></thead><tbody>${tbody}</tbody></table>
+<div class="tot"><div class="l">Sous-total HT&nbsp;&nbsp;<b>${P}</b></div><div class="l">TVA 8,1 %&nbsp;&nbsp;${P}</div><div class="ttc">MONTANT TOTAL TTC&nbsp;&nbsp;${P}</div></div>
+<h2>R\u00e9serves & conditions d'ex\u00e9cution</h2>
+<ul><li>Quantit\u00e9s et conditions d'ex\u00e9cution \u00e0 confirmer lors de la visite technique et de la coordination avec la direction des travaux.</li>
+<li>Choix d\u00e9finitif du module et puissance finale sous r\u00e9serve de validation dimensionnelle.</li>
+<li>Installation conforme aux normes NIBT / OIBT / EN 50549 \u2014 contr\u00f4le final et mise en service inclus.</li>
+<li>\u00c9chafaudage non chiffr\u00e9 : \u00e0 pr\u00e9ciser selon les conditions du chantier.</li></ul>
+<h2>D\u00e9lais & planification</h2>
+<ul><li>[D\u00e9lai de remise et d\u00e9marrage chantier \u00e0 confirmer \u2014 Marc]</li>
+<li>Intervention PV \u00e0 coordonner avec l'avancement toiture / couverture / \u00e9chafaudage.</li></ul>
+<h2>Conditions de paiement</h2>
+<ul><li>Acompte 40 % \u00e0 la commande (mise en production et planification)</li>
+<li>Acompte 40 % au d\u00e9but de l'intervention sur site</li>
+<li>Solde 20 % \u00e0 la mise en service de l'installation</li></ul>
+<p style="margin-top:16px">Nous restons \u00e0 votre disposition pour toute pr\u00e9cision technique ou adaptation n\u00e9cessaire.</p>
+<p>Cordialement,<br><b>Adson Bailly</b><br>Swiss Solar System S\u00e0rl</p>
+${MEM.lessons.length?`<h2>Pr\u00e9f\u00e9rences int\u00e9gr\u00e9es (m\u00e9moire de la cellule)</h2><ul>${MEM.lessons.slice(-5).map(l=>'<li>'+l+'</li>').join('')}</ul>`:''}
+<div class="demo">Gabarit de d\u00e9monstration g\u00e9n\u00e9r\u00e9 par l'Atelier au format des offres AN-00360 \u00e0 AN-00362. Une fois l'Atelier branch\u00e9 sur n8n, la cellule produit l'offre compl\u00e8te et chiffr\u00e9e, contr\u00f4l\u00e9e par Thomas et Chlo\u00e9, valid\u00e9e par Diane.</div>
+<div class="ft">Swiss Solar System S\u00e0rl \u00b7 Rue Antoinette Quinche 4, 1022 Chavannes-pr\u00e8s-Renens \u00b7 contact@swisssolarsystem.com \u00b7 +41 21 552 04 40 \u00b7 www.swisssolarsystem.com<br>N\u00b0 TVA : CHE-243.775.671 \u00b7 IBAN : CH25 0076 7000 C567 7278 2 \u00b7 BCV</div>
+</body></html>`;
+}
 function buildDoc(j){
+  if(j.type==="Offre") return buildOffre(j);
   const client=clientOf(j.prompt)||"Client";
   const d=new Date().toLocaleDateString('fr-CH',{day:'numeric',month:'long',year:'numeric'});
   const files=j.files.length?`<h2>Pièces transmises</h2><p>${j.files.map(f=>"— "+f).join("<br>")}</p>`:"";
   let core="";
-  if(j.type==="Offre"){
-    core=`<h2>Contexte et besoin</h2>
-<p>À la suite de votre demande, nous avons le plaisir de vous présenter notre proposition pour votre projet photovoltaïque. Cette offre est établie sur la base des éléments transmis et de l'orientation réelle de votre toiture.</p>
-<h2>Solution proposée</h2>
-<p>Installation dimensionnée par notre bureau technique : modules photovoltaïques haut rendement, onduleur Each Energy (rendement 98,2 à 98,5 %), structure de fixation K2 CrossHook. Le gain bifacial retenu se situe entre 3 et 10 % selon la configuration. [Dimensionnement détaillé à compléter par Hugo après analyse des relevés.]</p>
-<h2>Cadre économique</h2>
-<p>Le chiffrage détaillé, la subvention Pronovo estimée et le calcul de rentabilité figurent dans l'annexe économique. [Montants à compléter par Chloé — méthode Trient AN-00354.]</p>
-<h2>Prochaines étapes</h2>
-<p>Validation de la présente offre, planification du relevé technique complémentaire si nécessaire, puis dépôt des demandes administratives. Nous restons à votre entière disposition.</p>`;
-  } else if(j.type==="Point cash"){
+  if(j.type==="Point cash"){
     core=`<h2>Synthèse du jour</h2>
 <p>Trésorerie disponible, encaissements attendus sous 7 jours, sorties planifiées (fournisseurs, salaires, TVA) et alerte anticipée le cas échéant. [Chiffres alimentés par Mathieu via Bexio et la banque une fois la connexion active.]</p>
 <h2>Projection</h2>
