@@ -818,6 +818,7 @@ const SUGGS=[
 ];
 const ROUTES=[
   {re:/protocole|essais[- ]mesures|\bpac\b|pompe [aà] chaleur/i, pole:"conf", type:"Protocole", chain:["Victor","Raphaël","Denis","Diane"]},
+  {re:/historique|taux de conversion|converti|combien.+offres|offres.+(juin|juillet|ao[uû]t|septembre|octobre|novembre|d[eé]cembre|janvier|f[eé]vrier|mars|avril|mai|mois|attente|sign[eé]e)|mes offres|suivi (des )?offres/i, pole:"dir", type:"Reporting", chain:["Victor","Inès","Manon","Diane"]},
   {re:/offre|devis|chiffr|dimensionn|prix|kwc|panneau|batterie|onduleur/i, pole:"devis", type:"Offre",    chain:["Victor","Marc","Thomas","Diane"]},
   {re:/audit|relev[eé]|toiture|permis|avant-projet|mesure/i,              pole:"audit", type:"Audit",    chain:["Victor","Julien","Denis","Diane"]},
   {re:/relance|pipeline|crm|apporteur|commission/i,                        pole:"pipe",  type:"Relance",  chain:["Victor","Léa","Diane"]},
@@ -999,27 +1000,39 @@ function buildOffre(j){
   const bat=/batter/i.test(j.prompt);
   const micro=/micro[- ]?onduleur|atmoce/i.test(j.prompt);
   const solax=/solax/i.test(j.prompt);
-  const P="<span style='color:#b00;font-weight:600'>[\u00e0 chiffrer \u2013 Chlo\u00e9]</span>";
+  const nmod=(function(){const m=j.prompt.match(/(\d+)\s*(modules?|panneaux?)/i);if(m)return +m[1];return kw?Math.round(parseFloat(String(kw).replace(',','.'))*1000/490):16;})();
+  const kwEff=kw?parseFloat(String(kw).replace(',','.')):(nmod*0.49);
+  const kwhBat=(function(){const m=j.prompt.match(/(\d+)\s*kwh/i);return m?+m[1]:10;})();
+  const fmt=n=>{const p=n.toFixed(2).split('.');return p[0].replace(/\B(?=(\d{3})+(?!\d))/g,"'")+'.'+p[1]};
+  const PU={module:275, ondul:2950, micro:255, bat:640*Math.max(kwhBat,10)/1, structure:225, cabl:1480, coffret:1450, racc:1250, mo:2900, moBat:3400, dossier:950};
+  PU.bat=Math.round(6400*kwhBat/10/50)*50;
   const rows=[
-    ["Modules photovolta\u00efques Full Black \u2013 MaviWatt Pulse 490 W",
-     "Fourniture des modules back contact Full Black \u2013 puissance totale install\u00e9e "+(kw?kw+" kWc":"[\u00e0 dimensionner \u2013 Hugo]")+".<br>\u2022 Aspect Full Black premium \u2013 esth\u00e9tique homog\u00e8ne<br>\u2022 Cadre aluminium anodis\u00e9 noir \u2013 garantie produit et performance selon documentation constructeur<br>\u2022 Calepinage v\u00e9rifi\u00e9 conforme \u00e0 l'implantation","[qt\u00e9]"],
-    [micro?"Micro-onduleurs ATMOCE + passerelle de monitoring":(solax?"Onduleur hybride SolaX triphas\u00e9 + Smart Meter":"Onduleur hybride Each Energy triphas\u00e9 + Smart Meter"),
-     micro?"\u2022 Optimisation par module \u2013 suivi individuel de production<br>\u2022 Conformit\u00e9 r\u00e9seau suisse EN 50549<br>\u2022 Monitoring int\u00e9gr\u00e9":"Onduleur hybride triphas\u00e9 adapt\u00e9 \u00e0 la puissance install\u00e9e, avec compteur intelligent.<br>\u2022 Sortie triphas\u00e9e 400 V \u2013 conformit\u00e9 r\u00e9seau suisse EN 50549<br>\u2022 Smart Meter \u2013 mesure production / consommation / injection<br>\u2022 Monitoring int\u00e9gr\u00e9 \u2013 protection anti-\u00eelotage","1.00"]
+    ["Modules photovolta\u00efques Full Black \u2013 MaviWatt Pulse 490 W ("+nmod+" panneaux)",
+     "Fourniture de "+nmod+" modules back contact Full Black \u2013 puissance totale install\u00e9e "+(kwEff.toFixed(2))+" kWc.<br>\u2022 Aspect Full Black premium \u2013 esth\u00e9tique homog\u00e8ne<br>\u2022 Dimensions : 1 800 \u00d7 1 134 \u00d7 30 mm \u2013 cadre aluminium anodis\u00e9 noir<br>\u2022 Rendement \u00e9lev\u00e9 \u2013 garantie produit et performance selon documentation constructeur<br>\u2022 Calepinage v\u00e9rifi\u00e9 conforme \u00e0 l'implantation", nmod.toFixed(2), PU.module, nmod*PU.module]
   ];
-  if(bat)rows.push(["Batterie de stockage "+(solax?"SolaX":"Each Energy"),
-    "Syst\u00e8me de stockage haute tension, extensible.<br>\u2022 Couplage DC \u2013 gestion intelligente de l'autoconsommation<br>\u2022 Garantie constructeur selon documentation","1.00"]);
+  if(micro){
+    rows.push(["Micro-onduleurs ATMOCE ("+nmod+" unit\u00e9s) + monitoring panneau par panneau",
+     "Solution micro-onduleurs : un convertisseur par module, supervision individuelle.<br>\u2022 Conformit\u00e9 r\u00e9seau EN 50549<br>\u2022 Monitoring panneau par panneau \u2013 d\u00e9tection fine de sous-performance / ombrage<br>\u2022 Passerelle de communication et supervision<br>\u2022 S\u00e9curit\u00e9 : arr\u00eat au niveau du module \u2013 pas de haute tension DC en toiture", nmod.toFixed(2), PU.micro, nmod*PU.micro]);
+  } else {
+    rows.push(["Onduleur hybride "+(solax?"SolaX":"Each Energy")+" triphas\u00e9 + Smart Meter",
+     "Onduleur hybride triphas\u00e9 adapt\u00e9 \u00e0 la puissance install\u00e9e, avec compteur intelligent.<br>\u2022 Sortie triphas\u00e9e 400 V \u2013 conformit\u00e9 r\u00e9seau suisse EN 50549<br>\u2022 Smart Meter \u2013 mesure production / consommation / injection<br>\u2022 Monitoring int\u00e9gr\u00e9 \u2013 protection anti-\u00eelotage", "1.00", PU.ondul, PU.ondul]);
+  }
+  if(bat) rows.push(["Batterie "+(solax?"SolaX":"Each Energy")+" "+kwhBat+" kWh LFP + fonction secours (EPS / Backup)",
+     "Syst\u00e8me de stockage LFP coupl\u00e9 \u00e0 l'onduleur hybride, optimisation de l'autoconsommation.<br>\u2022 Capacit\u00e9 utile ~"+kwhBat+" kWh \u2013 technologie LiFePO4 \u2013 BMS int\u00e9gr\u00e9<br>\u2022 Fonction secours EPS / Backup sur circuits prioritaires<br>\u2022 Dimensionnement d\u00e9finitif selon profil de consommation r\u00e9el", "1.00", PU.bat, PU.bat]);
   rows.push(
-    ["Structure de fixation \u2013 K2 Systems",
-     "Syst\u00e8me aluminium certifi\u00e9 K2 adapt\u00e9 \u00e0 la couverture.<br>\u2022 Rails, crochets, brides, visserie inox<br>\u2022 Mise \u00e0 la terre et liaisons \u00e9quipotentielles<br>\u2022 Dimensionnement lestage/fixation selon normes SIA","1.00"],
-    ["C\u00e2blage DC / AC + protections + parafoudre",
-     "\u2022 C\u00e2bles solaires DC EN50618, connecteurs MC4, conduits<br>\u2022 Protections DC et AC, sectionnement \u2013 parafoudre type II<br>\u2022 Liaisons \u00e9quipotentielles \u2013 conformit\u00e9 NIBT / OIBT","1.00"],
+    ["Structure de fixation en surimposition (applique) \u2013 K2 Systems",
+     "Syst\u00e8me aluminium certifi\u00e9 K2 adapt\u00e9 \u00e0 la couverture.<br>\u2022 Rails aluminium, crochets, brides, visserie inox<br>\u2022 Mise \u00e0 la terre et liaisons \u00e9quipotentielles<br>\u2022 Dimensionnement lestage/fixation selon normes SIA", "1.00", nmod*PU.structure, nmod*PU.structure],
+    [micro?"Coffret AC + c\u00e2blage AC + protections + parafoudre":"C\u00e2blage DC / AC + protections + parafoudre",
+     "\u2022 C\u00e2bles solaires DC EN50618, connecteurs MC4, conduits<br>\u2022 Protections DC et AC, sectionnement \u2013 parafoudre type II<br>\u2022 Liaisons \u00e9quipotentielles \u2013 conformit\u00e9 NIBT / OIBT", "1.00", micro?PU.coffret:PU.cabl, micro?PU.coffret:PU.cabl],
     ["Raccordement \u00e9lectrique au tableau",
-     "\u2022 Raccordement AC au tableau \u2013 adaptation selon installation existante<br>\u2022 Rep\u00e9rage et mise en conformit\u00e9 \u2013 NIBT / OIBT","1.00"],
+     "\u2022 Raccordement AC au tableau \u2013 adaptation selon installation existante<br>\u2022 Rep\u00e9rage et mise en conformit\u00e9 \u2013 NIBT / OIBT", "1.00", PU.racc, PU.racc],
     ["Main-d'\u0153uvre \u2013 installation compl\u00e8te",
-     "\u2022 Pose de la structure et des modules \u2013 c\u00e2blage DC/AC<br>\u2022 Raccordements, essais et mise en service<br>\u2022 Coordination chantier et direction des travaux","1.00"],
+     "\u2022 Pose de la structure et des modules \u2013 c\u00e2blage DC/AC<br>\u2022 Raccordements, essais et mise en service"+(bat?"<br>\u2022 Installation et c\u00e2blage du syst\u00e8me de stockage":"")+"<br>\u2022 Coordination chantier et direction des travaux", "1.00", bat?PU.moBat:PU.mo, bat?PU.moBat:PU.mo],
     ["Dossier administratif & mise en service",
-     "\u2022 Sch\u00e9mas \u00e9lectriques \u2013 annonce GRD \u2013 dossier Pronovo<br>\u2022 Rapport de mise en service \u2013 contr\u00f4le OIBT / NIBT","1.00"]);
-  const tbody=rows.map((r,i)=>`<tr${i%2?" style='background:#F5F5F5'":""}><td style="padding:8px 10px;vertical-align:top;font-weight:700">${i+1}</td><td style="padding:8px 10px;vertical-align:top"><b>${r[0]}</b><br><span style="font-size:12px;color:#333">${r[1]}</span></td><td style="padding:8px 10px;vertical-align:top;text-align:right">${r[2]}</td><td style="padding:8px 10px;vertical-align:top;text-align:right">${P}</td><td style="padding:8px 10px;vertical-align:top;text-align:right">${P}</td></tr>`).join('');
+     "\u2022 Sch\u00e9mas \u00e9lectriques \u2013 annonce GRD \u2013 dossier Pronovo<br>\u2022 Rapport de mise en service \u2013 contr\u00f4le OIBT / NIBT", "1.00", PU.dossier, PU.dossier]);
+  const totalHT=rows.reduce((t,r)=>t+r[4],0);
+  const tva=totalHT*0.081;
+  const tbody=rows.map((r,i)=>`<tr${i%2?" style='background:#F5F5F5'":""}><td style="padding:8px 10px;vertical-align:top;font-weight:700">${i+1}</td><td style="padding:8px 10px;vertical-align:top"><b>${r[0]}</b><br><span style="font-size:12px;color:#333">${r[1]}</span></td><td style="padding:8px 10px;vertical-align:top;text-align:right">${r[2]}</td><td style="padding:8px 10px;vertical-align:top;text-align:right">${fmt(r[3])}</td><td style="padding:8px 10px;vertical-align:top;text-align:right">${fmt(r[4])}</td></tr>`).join('');
   const title=`Installation photovolta\u00efque${kw?" \u2013 "+kw+" kWc":""}${micro?" \u2013 micro-onduleurs ATMOCE":(solax?" \u2013 onduleur hybride SolaX":" \u2013 onduleur hybride Each Energy")}${bat?" \u2013 batterie":""} \u2013 ${client}`;
   return `<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><title>Offre \u2013 ${client}</title>
 <style>body{font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;color:#1f1f1f;max-width:800px;margin:0 auto;padding:40px 32px;line-height:1.5;font-size:13.5px}
@@ -1049,7 +1062,7 @@ ul{margin:4px 0 0 18px;padding:0}li{margin-bottom:3px}
 <p style="margin-top:18px">\u00c0 l'attention de ${client}</p>
 <p>Dans le cadre de votre projet, nous vous soumettons notre offre pour le lot \u00ab installation photovolta\u00efque \u00bb. <i>[Contexte pr\u00e9cis \u2013 implantation, pan de toiture, calepinage, coordination chantier \u2013 \u00e0 compl\u00e9ter par Marc sur la base des plans et de la visite technique.]</i> L'intervention prend en compte les raccords de toiture, le maintien de l'\u00e9tanch\u00e9it\u00e9, les passages de c\u00e2bles et la protection des \u00e9l\u00e9ments existants. Demande d'origine : \u00ab ${j.prompt} \u00bb</p>
 <table><thead><tr><th>Pos.</th><th>Description</th><th>Qt\u00e9</th><th>Prix unit.</th><th>Prix total CHF</th></tr></thead><tbody>${tbody}</tbody></table>
-<div class="tot"><div class="l">Sous-total HT&nbsp;&nbsp;<b>${P}</b></div><div class="l">TVA 8,1 %&nbsp;&nbsp;${P}</div><div class="ttc">MONTANT TOTAL TTC&nbsp;&nbsp;${P}</div></div>
+<div class="tot"><div class="l">Sous-total HT&nbsp;&nbsp;<b>${fmt(totalHT)} CHF</b></div><div class="l">TVA 8,1 %&nbsp;&nbsp;${fmt(tva)} CHF</div><div class="ttc">MONTANT TOTAL TTC&nbsp;&nbsp;${fmt(totalHT+tva)} CHF</div></div>
 <h2>R\u00e9serves & conditions d'ex\u00e9cution</h2>
 <ul><li>Quantit\u00e9s et conditions d'ex\u00e9cution \u00e0 confirmer lors de la visite technique et de la coordination avec la direction des travaux.</li>
 <li>Choix d\u00e9finitif du module et puissance finale sous r\u00e9serve de validation dimensionnelle.</li>
