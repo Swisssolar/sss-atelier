@@ -247,6 +247,22 @@
   .dlv .da button.alt:hover{background:#e7f4ec}
   .jfiles{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
   .jfiles span{font-size:11px;font-weight:600;background:var(--alt);border:1px solid var(--line);color:#5a5854;border-radius:12px;padding:2px 9px}
+  .memcard{background:linear-gradient(160deg,#2f2f2f,#1c1c1c);border:none;color:#e9e9e9}
+  .memcard h3{color:#fff}
+  .memcard .ms{display:flex;gap:26px;margin:12px 0 4px}
+  .memcard .ms b{display:block;font-size:24px;color:#ff5548;letter-spacing:-.5px}
+  .memcard .ms span{font-size:11px;color:#bdbdbd;text-transform:uppercase;letter-spacing:.5px}
+  .memcard ul{margin:12px 0 0;list-style:none;display:flex;flex-direction:column;gap:6px}
+  .memcard li{font-size:12.5px;color:#d6d6d6;padding-left:16px;position:relative}
+  .memcard li::before{content:"↺";position:absolute;left:0;color:#ff5548}
+  .fbrow{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+  .fbrow button{font-size:12px;font-weight:600;padding:6px 12px;border-radius:8px;border:1px solid var(--line);background:#fff;cursor:pointer;transition:.15s}
+  .fbrow button:hover{border-color:var(--ok);color:var(--ok)}
+  .fbrow button.ko:hover{border-color:var(--red);color:var(--red-dk)}
+  .fbrow .fbdone{font-size:12px;font-weight:700;align-self:center;color:var(--ok)}
+  .badge-urg{font-size:10px;font-weight:800;letter-spacing:.6px;background:var(--red);color:#fff;border-radius:5px;padding:2px 7px;margin-left:8px;vertical-align:1px}
+  .assign{display:block;width:100%;margin-top:12px;font-size:12px;font-weight:700;color:var(--red-dk);background:var(--red-soft);border:1px solid #f2c9c9;border-radius:8px;padding:8px 12px;cursor:pointer;transition:.15s;text-align:center}
+  .assign:hover{background:#fbdada}
   /* ---------- Responsive ---------- */
   @media(max-width:960px){
     .hero{grid-template-columns:1fr;gap:30px}
@@ -747,8 +763,14 @@ function agentCard(a){
   return `<div class="agent ${cls}" data-p="${a.p}" onclick="this.classList.toggle('open')">
     <div class="top"><div class="av"><img src="${AV[a.n]}" alt="${a.n}"></div><div><div class="nm">${a.n}</div><div class="rl">${a.r}</div></div></div>
     <div class="tags">${tags}</div>
-    <div class="mission">${a.m}<ul>${a.pts.map(x=>`<li>${x}</li>`).join('')}</ul></div>
+    <div class="mission">${a.m}<ul>${a.pts.map(x=>`<li>${x}</li>`).join('')}</ul><button class="assign" onclick="event.stopPropagation();assignTo('${a.n}')">Confier une tâche à ${a.n} →</button></div>
   </div>`;
+}
+function assignTo(name){
+  go('studio');
+  const t=document.getElementById('prompt');
+  t.value='Pour '+name+' : ';
+  t.focus(); updateRoute();
 }
 function renderAgents(){document.getElementById('agrid').innerHTML=AGENTS.map(agentCard).join('')}
 function filterAgents(f,btn){
@@ -780,6 +802,8 @@ const store = {
 };
 let FILES=[];
 let JOBS=store.get('jobs',[]);
+let MEM=store.get('mem',{done:0,ok:0,fix:0,lessons:[]});
+function persistMem(){store.set('mem',MEM)}
 const SUGGS=[
   "Prépare une offre pour la villa Trient, 12 kWc avec batterie",
   "Fais le point cash du jour",
@@ -805,6 +829,9 @@ const ROUTES=[
 ];
 const VIDEXT=/\.(mp4|mov|avi|mkv|webm|m4v)$/i;
 function detectRoute(t,files){
+  const dm=t.match(/^pour\s+([A-Za-zÀ-ÿ]+)\s*[:,]/i);
+  if(dm){ const ag=AGENTS.find(a=>a.n.toLowerCase()===dm[1].toLowerCase());
+    if(ag) return {pole:ag.p,type:"Tâche pour "+ag.n,chain:ag.n==="Victor"?["Victor","Diane"]:["Victor",ag.n,"Diane"]}; }
   for(const r of ROUTES){ if(r.re.test(t)) return r; }
   if((files||[]).some(f=>VIDEXT.test(f.name||f))) return ROUTES.find(r=>r.pole==="mkt");
   return {pole:null,type:"Livrable",chain:["Victor","Diane"]};
@@ -861,7 +888,8 @@ function submitJob(){
   if(!t){ document.getElementById('prompt').focus(); return; }
   const r=detectRoute(t,FILES);
   const job={id:Date.now(), ts:new Date().toLocaleString('fr-CH',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}),
-    prompt:t, files:FILES.map(f=>f.name), type:r.type, chain:r.chain, pole:r.pole, done:false};
+    prompt:t, files:FILES.map(f=>f.name), type:r.type, chain:r.chain, pole:r.pole, done:false,
+    urgent:/urgent|au plus vite|asap|tout de suite|imm[eé]diat/i.test(t)};
   JOBS.unshift(job);
   document.getElementById('prompt').value=''; document.getElementById('route').classList.remove('on');
   FILES=[]; renderFiles();
@@ -877,17 +905,17 @@ function runDemo(job){
     if(!el) return;
     const rows=el.querySelectorAll('.tls');
     if(i>0){ rows[i-1].classList.remove('doing'); rows[i-1].classList.add('done'); }
-    if(i<rows.length){ rows[i].classList.add('doing'); i++; setTimeout(tick, 850+Math.random()*600); }
-    else{ job.done=true; persistJobs(); renderJobs(); }
+    if(i<rows.length){ rows[i].classList.add('doing'); i++; setTimeout(tick, job.urgent?420:850+Math.random()*600); }
+    else{ job.done=true; MEM.done++; persistMem(); persistJobs(); renderJobs(); }
   };
   setTimeout(tick,300);
 }
 async function runLive(job,hook){
   try{
     const res=await fetch(hook,{method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({prompt:job.prompt,files:job.files,type:job.type,ts:job.ts})});
+      body:JSON.stringify({prompt:job.prompt,files:job.files,type:job.type,ts:job.ts,urgent:!!job.urgent,memory:MEM.lessons.slice(-10)})});
     job.response=await res.text();
-    job.done=true;
+    job.done=true; MEM.done++; persistMem();
   }catch(e){
     job.error="Webhook injoignable ("+e.message+"). Vérifiez l'URL n8n.";
     job.done=true;
@@ -897,13 +925,31 @@ async function runLive(job,hook){
 function persistJobs(){ store.set('jobs',JOBS.slice(0,20)); }
 function clearJobs(){ JOBS=[]; persistJobs(); renderJobs(); }
 function jobIcon(t){ return {"Offre":"📄","Audit":"📐","Relance":"📮","Point cash":"💰","Finance":"🧾","Contrat":"✍️","Courrier":"✉️","Client":"🤝","Régies":"🏢","Créative Meta Ads":"🎬","Conformité":"✅","Reporting":"📊"}[t]||"📄"; }
+function memCard(){
+  return `<div class="card memcard"><h3>Mémoire de la cellule</h3>
+  <p style="font-size:12.5px;color:#bdbdbd;margin-top:4px">Chaque validation ou correction est retenue : les agents s'adaptent à vos préférences et accélèrent à chaque tâche.</p>
+  <div class="ms"><div><b>${MEM.done}</b><span>livrables</span></div><div><b>${MEM.ok}</b><span>validés</span></div><div><b>${MEM.fix}</b><span>corrections retenues</span></div></div>
+  ${MEM.lessons.length?`<ul>${MEM.lessons.slice(-4).reverse().map(l=>`<li>${l}</li>`).join('')}</ul>`:''}
+  </div>`;
+}
+function fbJob(id,good){
+  const j=JOBS.find(x=>x.id===id); if(!j||j.fb)return;
+  if(good){ j.fb='ok'; MEM.ok++; MEM.lessons.push('Format validé : '+j.type+' — à reproduire.'); }
+  else{
+    const c=prompt("Qu'est-ce que la cellule doit corriger ou retenir pour la prochaine fois ?");
+    if(c===null)return;
+    j.fb='ko'; MEM.fix++; MEM.lessons.push((c&&c.trim()?c.trim():'Correction demandée')+' ('+j.type+')');
+  }
+  MEM.lessons=MEM.lessons.slice(-12);
+  persistMem(); persistJobs(); renderJobs();
+}
 function renderJobs(){
   const box=document.getElementById('outbox');
   if(!JOBS.length){
-    box.innerHTML=`<div class="outempty"><b>Aucun livrable pour l'instant</b>Déposez vos dossiers, écrivez votre demande et envoyez : le résultat apparaîtra ici.</div>`;
+    box.innerHTML=memCard()+`<div class="outempty"><b>Aucun livrable pour l'instant</b>Déposez vos dossiers, écrivez votre demande et envoyez : le résultat apparaîtra ici.</div>`;
     return;
   }
-  box.innerHTML=JOBS.map(j=>{
+  box.innerHTML=memCard()+JOBS.map(j=>{
     const steps=stepsFor({chain:j.chain});
     let body='';
     if(!j.done){
@@ -917,11 +963,14 @@ function renderJobs(){
         <div class="dic"><svg viewBox="0 0 24 24"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6"/></svg></div>
         <div><div class="dn">${label}</div><div class="ds">Validé par Diane · standard AN-00354</div></div>
         <div class="da"><button onclick="openDoc(${j.id})" class="alt">Aperçu</button><button onclick="dlDoc(${j.id})">Télécharger</button></div>
-      </div>`;
+      </div>
+      ${j.fb==='ok'?`<div class="fbrow"><span class="fbdone">✓ Validé — préférence mémorisée par la cellule</span></div>`
+       :j.fb==='ko'?`<div class="fbrow"><span class="fbdone" style="color:var(--red-dk)">↺ Correction retenue — intégrée aux prochains livrables</span></div>`
+       :`<div class="fbrow"><button onclick="fbJob(${j.id},true)">👍 Valider</button><button class="ko" onclick="fbJob(${j.id},false)">✎ Demander une correction</button></div>`}`;
     }
     return `<div class="job">
       <div class="jh"><div class="jic">${jobIcon(j.type)}</div>
-        <div style="min-width:0"><div class="jt">${j.type}${j.pole?' · '+poleName(j.pole):''}</div><div class="jm">${j.ts}</div></div></div>
+        <div style="min-width:0"><div class="jt">${j.type}${j.pole?' · '+poleName(j.pole):''}${j.urgent?'<span class="badge-urg">PRIORITÉ</span>':''}</div><div class="jm">${j.ts}</div></div></div>
       <div class="jp">« ${j.prompt} »</div>
       ${j.files.length?`<div class="jfiles">${j.files.map(f=>`<span>📎 ${f}</span>`).join('')}</div>`:''}
       ${j.response?`<div class="jp" style="font-style:normal">${String(j.response).slice(0,1200)}</div>`:''}
@@ -988,6 +1037,7 @@ h2{color:#CC0000;font-size:16px;margin:28px 0 8px}
 <p class="meta">Demande d'origine : « ${j.prompt} »</p>
 ${core}
 ${files}
+${MEM.lessons.length?`<h2>Préférences intégrées</h2><p>${MEM.lessons.slice(-5).map(l=>'— '+l).join('<br>')}</p>`:''}
 <div class="demo">Document de démonstration généré par l'Atelier de la cellule IA. Une fois l'Atelier branché sur n8n, ce livrable est produit par les agents réels, contrôlé, puis validé par Diane avant de vous être remis.</div>
 </body></html>`;
 }
