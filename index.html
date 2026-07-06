@@ -811,12 +811,15 @@ const SUGGS=[
   "Prépare la trame d'audit bâtiment pour la régie M&B",
   "Vérifie les subventions Pronovo pour ce projet",
   "Rédige la réponse au client sur la garantie onduleur",
-  "Ajoute cette vidéo à la créative Meta Ads et prépare les déclinaisons"
+  "Ajoute cette vidéo à la créative Meta Ads et prépare les déclinaisons",
+  "Analyse le fichier CAMT et fais le rapprochement avec les offres",
+  "Donne-moi l'historique des offres et le taux de conversion"
 ];
 const ROUTES=[
   {re:/offre|devis|chiffr|dimensionn|prix|kwc|panneau|batterie|onduleur/i, pole:"devis", type:"Offre",    chain:["Victor","Marc","Thomas","Diane"]},
   {re:/audit|relev[eé]|toiture|permis|avant-projet|mesure/i,              pole:"audit", type:"Audit",    chain:["Victor","Julien","Denis","Diane"]},
   {re:/relance|pipeline|crm|apporteur|commission/i,                        pole:"pipe",  type:"Relance",  chain:["Victor","Léa","Diane"]},
+  {re:/camt|transactions? bancaires?|relevé bancaire|rapprochement|comptabilité/i, pole:"dir", type:"Comptabilité", chain:["Victor","Mathieu","Gérard","Diane"]},
   {re:/cash|tr[eé]sorerie|liquidit/i,                                      pole:"dir",   type:"Point cash",chain:["Victor","Mathieu","Gérard","Diane"]},
   {re:/facture|tva|compta|paiement|bexio/i,                                pole:"admin", type:"Finance",  chain:["Victor","Pierre","Gérard","Diane"]},
   {re:/contrat|juridique|cgv|clause|rh /i,                                 pole:"admin", type:"Contrat",  chain:["Victor","Vincent","Guillaume","Diane"]},
@@ -825,19 +828,21 @@ const ROUTES=[
   {re:/r[eé]gie|powerpoint|pr[eé]sentation|visite/i,                       pole:"regies",type:"Régies",   chain:["Victor","Florence","Diane"]},
   {re:/linkedin|tiktok|instagram|meta ?ads?|facebook|vid[eé]o|reel|cr[eé]ativ|publicit|campagne|contenu|seo|marketing/i, pole:"mkt", type:"Créative Meta Ads", chain:["Victor","Nora","Yanis","Diane"]},
   {re:/subvention|pronovo|oibt|conformit[eé]|achat|fournisseur/i,          pole:"conf",  type:"Conformité",chain:["Victor","Michel","Denis","Diane"]},
-  {re:/kpi|tableau de bord|reporting/i,                                    pole:"dir",   type:"Reporting",chain:["Victor","Inès","Diane"]}
+  {re:/kpi|tableau de bord|reporting|historique des offres|taux de conversion|conversion/i,                                    pole:"dir",   type:"Reporting",chain:["Victor","Inès","Diane"]}
 ];
 const VIDEXT=/\.(mp4|mov|avi|mkv|webm|m4v)$/i;
+const CAMTEXT=/camt|\.xml$/i;
 function detectRoute(t,files){
   const dm=t.match(/^pour\s+([A-Za-zÀ-ÿ]+)\s*[:,]/i);
   if(dm){ const ag=AGENTS.find(a=>a.n.toLowerCase()===dm[1].toLowerCase());
     if(ag) return {pole:ag.p,type:"Tâche pour "+ag.n,chain:ag.n==="Victor"?["Victor","Diane"]:["Victor",ag.n,"Diane"]}; }
   for(const r of ROUTES){ if(r.re.test(t)) return r; }
   if((files||[]).some(f=>VIDEXT.test(f.name||f))) return ROUTES.find(r=>r.pole==="mkt");
+  if((files||[]).some(f=>CAMTEXT.test(f.name||f))) return ROUTES.find(r=>r.type==="Comptabilité");
   return {pole:null,type:"Livrable",chain:["Victor","Diane"]};
 }
 function fmtSize(b){ if(b>1048576)return (b/1048576).toFixed(1)+" Mo"; if(b>1024)return Math.round(b/1024)+" Ko"; return b+" o"; }
-function extColor(e){ return {pdf:"#c0392b",doc:"#2b579a",docx:"#2b579a",xls:"#217346",xlsx:"#217346",csv:"#217346",jpg:"#8e6ac0",jpeg:"#8e6ac0",png:"#8e6ac0",heic:"#8e6ac0",ppt:"#d24726",pptx:"#d24726",mp4:"#CC0000",mov:"#CC0000",webm:"#CC0000",m4v:"#CC0000",avi:"#CC0000"}[e]||"#5a5854"; }
+function extColor(e){ return {pdf:"#c0392b",doc:"#2b579a",docx:"#2b579a",xls:"#217346",xlsx:"#217346",csv:"#217346",jpg:"#8e6ac0",jpeg:"#8e6ac0",png:"#8e6ac0",heic:"#8e6ac0",ppt:"#d24726",pptx:"#d24726",xml:"#0b7285",mp4:"#CC0000",mov:"#CC0000",webm:"#CC0000",m4v:"#CC0000",avi:"#CC0000"}[e]||"#5a5854"; }
 function addFiles(list){
   for(const f of list){ FILES.push({name:f.name,size:f.size}); }
   renderFiles();
@@ -871,7 +876,7 @@ function saveHook(){
 }
 function applyMode(){
   const hook=store.get('hook','');
-  document.getElementById('hook').value=hook;
+  document.getElementById('hook').value=hook||'https://n8n-production-31f2.up.railway.app/webhook/atelier';
   const m=document.getElementById('modeTag');
   if(hook){ m.textContent="Connecté à n8n"; m.classList.add('live'); }
   else{ m.textContent="Mode démonstration"; m.classList.remove('live'); }
@@ -924,7 +929,7 @@ async function runLive(job,hook){
 }
 function persistJobs(){ store.set('jobs',JOBS.slice(0,20)); }
 function clearJobs(){ JOBS=[]; persistJobs(); renderJobs(); }
-function jobIcon(t){ return {"Offre":"📄","Audit":"📐","Relance":"📮","Point cash":"💰","Finance":"🧾","Contrat":"✍️","Courrier":"✉️","Client":"🤝","Régies":"🏢","Créative Meta Ads":"🎬","Conformité":"✅","Reporting":"📊"}[t]||"📄"; }
+function jobIcon(t){ return {"Offre":"📄","Audit":"📐","Relance":"📮","Point cash":"💰","Finance":"🧾","Contrat":"✍️","Courrier":"✉️","Client":"🤝","Régies":"🏢","Créative Meta Ads":"🎬","Conformité":"✅","Reporting":"📊","Comptabilité":"🔐"}[t]||"📄"; }
 function memCard(){
   return `<div class="card memcard"><h3>Mémoire de la cellule</h3>
   <p style="font-size:12.5px;color:#bdbdbd;margin-top:4px">Chaque validation ou correction est retenue : les agents s'adaptent à vos préférences et accélèrent à chaque tâche.</p>
@@ -991,29 +996,30 @@ function buildOffre(j){
   const kw=(j.prompt.match(/(\d+[.,]?\d*)\s*k[wW]c/)||[])[1];
   const bat=/batter/i.test(j.prompt);
   const micro=/micro[- ]?onduleur|atmoce/i.test(j.prompt);
-  const P="<span style='color:#b00;font-weight:600'>[\u00e0 chiffrer \u2014 Chlo\u00e9]</span>";
+  const solax=/solax/i.test(j.prompt);
+  const P="<span style='color:#b00;font-weight:600'>[\u00e0 chiffrer \u2013 Chlo\u00e9]</span>";
   const rows=[
-    ["Modules photovolta\u00efques Full Black \u2014 MaviWatt Pulse 490 W",
-     "Fourniture des modules back contact Full Black \u2014 puissance totale install\u00e9e "+(kw?kw+" kWc":"[\u00e0 dimensionner \u2014 Hugo]")+".<br>\u2022 Aspect Full Black premium \u2014 esth\u00e9tique homog\u00e8ne<br>\u2022 Cadre aluminium anodis\u00e9 noir \u2014 garantie produit et performance selon documentation constructeur<br>\u2022 Calepinage v\u00e9rifi\u00e9 conforme \u00e0 l'implantation","[qt\u00e9]"],
-    [micro?"Micro-onduleurs ATMOCE + passerelle de monitoring":"Onduleur hybride Each Energy triphas\u00e9 + Smart Meter",
-     micro?"\u2022 Optimisation par module \u2014 suivi individuel de production<br>\u2022 Conformit\u00e9 r\u00e9seau suisse EN 50549<br>\u2022 Monitoring int\u00e9gr\u00e9":"Onduleur hybride triphas\u00e9 adapt\u00e9 \u00e0 la puissance install\u00e9e, avec compteur intelligent.<br>\u2022 Sortie triphas\u00e9e 400 V \u2014 conformit\u00e9 r\u00e9seau suisse EN 50549<br>\u2022 Smart Meter \u2014 mesure production / consommation / injection<br>\u2022 Monitoring int\u00e9gr\u00e9 \u2014 protection anti-\u00eelotage","1.00"]
+    ["Modules photovolta\u00efques Full Black \u2013 MaviWatt Pulse 490 W",
+     "Fourniture des modules back contact Full Black \u2013 puissance totale install\u00e9e "+(kw?kw+" kWc":"[\u00e0 dimensionner \u2013 Hugo]")+".<br>\u2022 Aspect Full Black premium \u2013 esth\u00e9tique homog\u00e8ne<br>\u2022 Cadre aluminium anodis\u00e9 noir \u2013 garantie produit et performance selon documentation constructeur<br>\u2022 Calepinage v\u00e9rifi\u00e9 conforme \u00e0 l'implantation","[qt\u00e9]"],
+    [micro?"Micro-onduleurs ATMOCE + passerelle de monitoring":(solax?"Onduleur hybride SolaX triphas\u00e9 + Smart Meter":"Onduleur hybride Each Energy triphas\u00e9 + Smart Meter"),
+     micro?"\u2022 Optimisation par module \u2013 suivi individuel de production<br>\u2022 Conformit\u00e9 r\u00e9seau suisse EN 50549<br>\u2022 Monitoring int\u00e9gr\u00e9":"Onduleur hybride triphas\u00e9 adapt\u00e9 \u00e0 la puissance install\u00e9e, avec compteur intelligent.<br>\u2022 Sortie triphas\u00e9e 400 V \u2013 conformit\u00e9 r\u00e9seau suisse EN 50549<br>\u2022 Smart Meter \u2013 mesure production / consommation / injection<br>\u2022 Monitoring int\u00e9gr\u00e9 \u2013 protection anti-\u00eelotage","1.00"]
   ];
-  if(bat)rows.push(["Batterie de stockage Each Energy",
-    "Syst\u00e8me de stockage haute tension, extensible.<br>\u2022 Couplage DC \u2014 gestion intelligente de l'autoconsommation<br>\u2022 Garantie constructeur selon documentation","1.00"]);
+  if(bat)rows.push(["Batterie de stockage "+(solax?"SolaX":"Each Energy"),
+    "Syst\u00e8me de stockage haute tension, extensible.<br>\u2022 Couplage DC \u2013 gestion intelligente de l'autoconsommation<br>\u2022 Garantie constructeur selon documentation","1.00"]);
   rows.push(
-    ["Structure de fixation \u2014 K2 Systems",
+    ["Structure de fixation \u2013 K2 Systems",
      "Syst\u00e8me aluminium certifi\u00e9 K2 adapt\u00e9 \u00e0 la couverture.<br>\u2022 Rails, crochets, brides, visserie inox<br>\u2022 Mise \u00e0 la terre et liaisons \u00e9quipotentielles<br>\u2022 Dimensionnement lestage/fixation selon normes SIA","1.00"],
     ["C\u00e2blage DC / AC + protections + parafoudre",
-     "\u2022 C\u00e2bles solaires DC EN50618, connecteurs MC4, conduits<br>\u2022 Protections DC et AC, sectionnement \u2014 parafoudre type II<br>\u2022 Liaisons \u00e9quipotentielles \u2014 conformit\u00e9 NIBT / OIBT","1.00"],
+     "\u2022 C\u00e2bles solaires DC EN50618, connecteurs MC4, conduits<br>\u2022 Protections DC et AC, sectionnement \u2013 parafoudre type II<br>\u2022 Liaisons \u00e9quipotentielles \u2013 conformit\u00e9 NIBT / OIBT","1.00"],
     ["Raccordement \u00e9lectrique au tableau",
-     "\u2022 Raccordement AC au tableau \u2014 adaptation selon installation existante<br>\u2022 Rep\u00e9rage et mise en conformit\u00e9 \u2014 NIBT / OIBT","1.00"],
-    ["Main-d'\u0153uvre \u2014 installation compl\u00e8te",
-     "\u2022 Pose de la structure et des modules \u2014 c\u00e2blage DC/AC<br>\u2022 Raccordements, essais et mise en service<br>\u2022 Coordination chantier et direction des travaux","1.00"],
+     "\u2022 Raccordement AC au tableau \u2013 adaptation selon installation existante<br>\u2022 Rep\u00e9rage et mise en conformit\u00e9 \u2013 NIBT / OIBT","1.00"],
+    ["Main-d'\u0153uvre \u2013 installation compl\u00e8te",
+     "\u2022 Pose de la structure et des modules \u2013 c\u00e2blage DC/AC<br>\u2022 Raccordements, essais et mise en service<br>\u2022 Coordination chantier et direction des travaux","1.00"],
     ["Dossier administratif & mise en service",
-     "\u2022 Sch\u00e9mas \u00e9lectriques \u2014 annonce GRD \u2014 dossier Pronovo<br>\u2022 Rapport de mise en service \u2014 contr\u00f4le OIBT / NIBT","1.00"]);
+     "\u2022 Sch\u00e9mas \u00e9lectriques \u2013 annonce GRD \u2013 dossier Pronovo<br>\u2022 Rapport de mise en service \u2013 contr\u00f4le OIBT / NIBT","1.00"]);
   const tbody=rows.map((r,i)=>`<tr${i%2?" style='background:#F5F5F5'":""}><td style="padding:8px 10px;vertical-align:top;font-weight:700">${i+1}</td><td style="padding:8px 10px;vertical-align:top"><b>${r[0]}</b><br><span style="font-size:12px;color:#333">${r[1]}</span></td><td style="padding:8px 10px;vertical-align:top;text-align:right">${r[2]}</td><td style="padding:8px 10px;vertical-align:top;text-align:right">${P}</td><td style="padding:8px 10px;vertical-align:top;text-align:right">${P}</td></tr>`).join('');
-  const title=`Installation photovolta\u00efque${kw?" \u2014 "+kw+" kWc":""}${micro?" \u2014 micro-onduleurs ATMOCE":" \u2014 onduleur hybride Each Energy"}${bat?" \u2014 batterie":""} \u2014 ${client}`;
-  return `<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><title>Offre \u2014 ${client}</title>
+  const title=`Installation photovolta\u00efque${kw?" \u2013 "+kw+" kWc":""}${micro?" \u2013 micro-onduleurs ATMOCE":(solax?" \u2013 onduleur hybride SolaX":" \u2013 onduleur hybride Each Energy")}${bat?" \u2013 batterie":""} \u2013 ${client}`;
+  return `<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><title>Offre \u2013 ${client}</title>
 <style>body{font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;color:#1f1f1f;max-width:800px;margin:0 auto;padding:40px 32px;line-height:1.5;font-size:13.5px}
 .lh{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px}
 .lh .co b{font-size:19px;letter-spacing:.5px}.lh .co b span{color:#CC0000}
@@ -1039,16 +1045,16 @@ ul{margin:4px 0 0 18px;padding:0}li{margin-bottom:3px}
 <div class="sub">${title}</div>
 <div class="meta">Date : <b>${date}</b><br>Valable jusqu'au : <b>${val}</b><br>Interlocuteur : <b>Adson Bailly</b></div>
 <p style="margin-top:18px">\u00c0 l'attention de ${client}</p>
-<p>Dans le cadre de votre projet, nous vous soumettons notre offre pour le lot \u00ab installation photovolta\u00efque \u00bb. <i>[Contexte pr\u00e9cis \u2014 implantation, pan de toiture, calepinage, coordination chantier \u2014 \u00e0 compl\u00e9ter par Marc sur la base des plans et de la visite technique.]</i> L'intervention prend en compte les raccords de toiture, le maintien de l'\u00e9tanch\u00e9it\u00e9, les passages de c\u00e2bles et la protection des \u00e9l\u00e9ments existants. Demande d'origine : \u00ab ${j.prompt} \u00bb</p>
+<p>Dans le cadre de votre projet, nous vous soumettons notre offre pour le lot \u00ab installation photovolta\u00efque \u00bb. <i>[Contexte pr\u00e9cis \u2013 implantation, pan de toiture, calepinage, coordination chantier \u2013 \u00e0 compl\u00e9ter par Marc sur la base des plans et de la visite technique.]</i> L'intervention prend en compte les raccords de toiture, le maintien de l'\u00e9tanch\u00e9it\u00e9, les passages de c\u00e2bles et la protection des \u00e9l\u00e9ments existants. Demande d'origine : \u00ab ${j.prompt} \u00bb</p>
 <table><thead><tr><th>Pos.</th><th>Description</th><th>Qt\u00e9</th><th>Prix unit.</th><th>Prix total CHF</th></tr></thead><tbody>${tbody}</tbody></table>
 <div class="tot"><div class="l">Sous-total HT&nbsp;&nbsp;<b>${P}</b></div><div class="l">TVA 8,1 %&nbsp;&nbsp;${P}</div><div class="ttc">MONTANT TOTAL TTC&nbsp;&nbsp;${P}</div></div>
 <h2>R\u00e9serves & conditions d'ex\u00e9cution</h2>
 <ul><li>Quantit\u00e9s et conditions d'ex\u00e9cution \u00e0 confirmer lors de la visite technique et de la coordination avec la direction des travaux.</li>
 <li>Choix d\u00e9finitif du module et puissance finale sous r\u00e9serve de validation dimensionnelle.</li>
-<li>Installation conforme aux normes NIBT / OIBT / EN 50549 \u2014 contr\u00f4le final et mise en service inclus.</li>
+<li>Installation conforme aux normes NIBT / OIBT / EN 50549 \u2013 contr\u00f4le final et mise en service inclus.</li>
 <li>\u00c9chafaudage non chiffr\u00e9 : \u00e0 pr\u00e9ciser selon les conditions du chantier.</li></ul>
 <h2>D\u00e9lais & planification</h2>
-<ul><li>[D\u00e9lai de remise et d\u00e9marrage chantier \u00e0 confirmer \u2014 Marc]</li>
+<ul><li>[D\u00e9lai de remise et d\u00e9marrage chantier \u00e0 confirmer \u2013 Marc]</li>
 <li>Intervention PV \u00e0 coordonner avec l'avancement toiture / couverture / \u00e9chafaudage.</li></ul>
 <h2>Conditions de paiement</h2>
 <ul><li>Acompte 40 % \u00e0 la commande (mise en production et planification)</li>
@@ -1065,9 +1071,16 @@ function buildDoc(j){
   if(j.type==="Offre") return buildOffre(j);
   const client=clientOf(j.prompt)||"Client";
   const d=new Date().toLocaleDateString('fr-CH',{day:'numeric',month:'long',year:'numeric'});
-  const files=j.files.length?`<h2>Pièces transmises</h2><p>${j.files.map(f=>"— "+f).join("<br>")}</p>`:"";
+  const files=j.files.length?`<h2>Pièces transmises</h2><p>${j.files.map(f=>"– "+f).join("<br>")}</p>`:"";
   let core="";
-  if(j.type==="Point cash"){
+  if(j.type==="Comptabilité"){
+    core=`<h2>Analyse des transactions (CAMT)</h2>
+<p>Lecture du fichier bancaire, classement des mouvements : encaissements clients, paiements fournisseurs, salaires, TVA, frais. [Analyse détaillée produite par Mathieu et Gérard une fois la cellule branchée.]</p>
+<h2>Rapprochement</h2>
+<p>Chaque encaissement est rapproché de l'offre ou de la facture correspondante. Les écarts et anomalies sont signalés.</p>
+<h2>Confidentialité</h2>
+<p>Accès strictement réservé au patron. Aucune donnée comptable ne quitte ce canal.</p>`;
+  } else if(j.type==="Point cash"){
     core=`<h2>Synthèse du jour</h2>
 <p>Trésorerie disponible, encaissements attendus sous 7 jours, sorties planifiées (fournisseurs, salaires, TVA) et alerte anticipée le cas échéant. [Chiffres alimentés par Mathieu via Bexio et la banque une fois la connexion active.]</p>
 <h2>Projection</h2>
@@ -1090,12 +1103,12 @@ function buildDoc(j){
 <h2>Déclinaisons prévues</h2>
 <p>Formats 9:16 (Reels, Stories), 1:1 (feed) et 16:9. Trois variantes d'accroche et deux variantes de CTA pour test A/B.</p>
 <h2>Ciblage et diffusion</h2>
-<p>Audiences propriétaires de villas et immeubles en Suisse romande, retargeting visiteurs du site, exclusion clients signés. Budget et calendrier à valider par vous. [Paramétrage préparé par Nora — la publication ne part jamais sans votre validation.]</p>`;
+<p>Audiences propriétaires de villas et immeubles en Suisse romande, retargeting visiteurs du site, exclusion clients signés. Budget et calendrier à valider par vous. [Paramétrage préparé par Nora – la publication ne part jamais sans votre validation.]</p>`;
   } else {
     core=`<h2>Synthèse</h2>
 <p>Votre demande a été analysée et routée vers le pôle compétent. Ce document constitue le gabarit du livrable final. [Contenu produit par la cellule une fois connectée via n8n.]</p>`;
   }
-  return `<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><title>${j.type} — ${client}</title>
+  return `<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><title>${j.type} – ${client}</title>
 <style>body{font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;color:#1f1f1f;max-width:760px;margin:0 auto;padding:48px 32px;line-height:1.6}
 .head{background:#3A3A3A;color:#fff;padding:18px 24px;border-radius:6px;display:flex;justify-content:space-between;align-items:center;margin-bottom:36px}
 .head b{font-size:17px}.head span{font-size:12px;opacity:.85}
@@ -1104,11 +1117,11 @@ h2{color:#CC0000;font-size:16px;margin:28px 0 8px}
 .meta{color:#6c6c6c;font-size:13px;margin-bottom:8px}
 .demo{margin-top:44px;padding:12px 16px;background:#F5F5F5;border-left:3px solid #CC0000;font-size:12px;color:#6c6c6c}</style></head><body>
 <div class="head"><b>Swiss Solar System</b><span>Cellule IA · ${d}</span></div>
-<h1>${j.type} — ${client}</h1>
+<h1>${j.type} – ${client}</h1>
 <p class="meta">Demande d'origine : « ${j.prompt} »</p>
 ${core}
 ${files}
-${MEM.lessons.length?`<h2>Préférences intégrées</h2><p>${MEM.lessons.slice(-5).map(l=>'— '+l).join('<br>')}</p>`:''}
+${MEM.lessons.length?`<h2>Préférences intégrées</h2><p>${MEM.lessons.slice(-5).map(l=>'– '+l).join('<br>')}</p>`:''}
 <div class="demo">Document de démonstration généré par l'Atelier de la cellule IA. Une fois l'Atelier branché sur n8n, ce livrable est produit par les agents réels, contrôlé, puis validé par Diane avant de vous être remis.</div>
 </body></html>`;
 }
