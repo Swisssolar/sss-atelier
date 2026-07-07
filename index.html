@@ -922,7 +922,8 @@ async function runLive(job,hook){
   try{
     const res=await fetch(hook,{method:'POST',headers:{'Content-Type':'application/json'},
       body:JSON.stringify({prompt:job.prompt,files:job.files,type:job.type,ts:job.ts,urgent:!!job.urgent,memory:MEM.lessons.slice(-10)})});
-    const txt=await res.text();
+    let txt=await res.text();
+    try{ const p=JSON.parse(txt); if(p && typeof p.texte==='string') txt=p.texte; }catch(e){}
     if(!res.ok){ job.error="La cellule n'a pas pu produire (HTTP "+res.status+"). Ouvre n8n > Executions pour le détail."; }
     else if(!txt||!txt.trim()){ job.error="Demande bien reçue par n8n, mais la cellule n'a pas pu produire : la clé API Anthropic manque (n8n > Credentials > Anthropic x-api-key). Voir MODE_D_EMPLOI."; }
     else { job.response=txt; }
