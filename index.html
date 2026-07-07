@@ -804,6 +804,26 @@ let FILES=[];
 let JOBS=store.get('jobs',[]);
 let MEM=store.get('mem',{done:0,ok:0,fix:0,lessons:[]});
 const VIDBLOBS={};
+const DOCBLOBS={};
+const DOCSUP=/\.(pdf|xml|camt|csv|txt|json|md)$/i;
+function fileB64(f){ return new Promise((res,rej)=>{ const r=new FileReader(); r.onload=()=>res(String(r.result).split(',')[1]||''); r.onerror=rej; r.readAsDataURL(f); }); }
+async function imgToJpeg(f){
+  const url=URL.createObjectURL(f);
+  try{
+    const img=await new Promise((res,rej)=>{ const i=new Image(); i.onload=()=>res(i); i.onerror=rej; i.src=url; });
+    const M=1568; let w=img.width,h=img.height; const s=Math.min(1,M/Math.max(w,h)); w=Math.max(1,Math.round(w*s)); h=Math.max(1,Math.round(h*s));
+    const cv=document.createElement('canvas'); cv.width=w; cv.height=h; cv.getContext('2d').drawImage(img,0,0,w,h);
+    return cv.toDataURL('image/jpeg',0.85).split(',')[1];
+  } finally { URL.revokeObjectURL(url); }
+}
+async function encodeDoc(f){
+  const name=f.name||'document';
+  const isImg=/^image\//.test(f.type||'')||/\.(jpe?g|png|gif|webp|heic|heif)$/i.test(name);
+  if(isImg){ return {name:name,media_type:'image/jpeg',data:await imgToJpeg(f)}; }
+  if(!DOCSUP.test(name)) return null;
+  const mt=/\.pdf$/i.test(name)?'application/pdf':(/\.(xml|camt)$/i.test(name)?'text/xml':'text/plain');
+  return {name:name,media_type:mt,data:await fileB64(f)};
+}
 function persistMem(){store.set('mem',MEM)}
 const SUGGS=[
   "Prépare une offre pour la villa Trient, 12 kWc avec batterie",
@@ -901,6 +921,8 @@ function submitJob(){
     urgent:/urgent|au plus vite|asap|tout de suite|imm[eé]diat/i.test(t)};
   const vids=FILES.filter(f=>f.file && VIDEXT.test(f.name)).map(f=>f.file);
   if(vids.length) VIDBLOBS[job.id]=vids;
+  const dcs=FILES.filter(f=>f.file && !VIDEXT.test(f.name)).map(f=>f.file);
+  if(dcs.length) DOCBLOBS[job.id]=dcs;
   JOBS.unshift(job);
   document.getElementById('prompt').value=''; document.getElementById('route').classList.remove('on');
   FILES=[]; renderFiles();
@@ -936,8 +958,18 @@ async function runLive(job,hook){
       }
       delete VIDBLOBS[job.id];
     }
+    const dfs=DOCBLOBS[job.id]||[]; const docsPayload=[]; let docBudget=11000000;
+    for(const f of dfs){
+      try{
+        const enc=await encodeDoc(f);
+        if(enc && enc.data && enc.data.length<=docBudget){ docsPayload.push(enc); docBudget-=enc.data.length; }
+        else if(enc && enc.data){ job.docWarn=(job.docWarn?job.docWarn+' ; ':'')+f.name+' trop volumineux (non transmis)'; }
+      }catch(e){ job.docWarn=(job.docWarn?job.docWarn+' ; ':'')+f.name+' illisible (non transmis)'; }
+    }
+    delete DOCBLOBS[job.id];
+    if(docsPayload.length) job.docsSent=docsPayload.map(d=>d.name);
     const res=await fetch(hook,{method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({prompt:job.prompt,files:job.files,type:job.type,ts:job.ts,urgent:!!job.urgent,memory:MEM.lessons.slice(-10),video_ids:job.videoIds||[]})});
+      body:JSON.stringify({prompt:job.prompt,files:job.files,type:job.type,ts:job.ts,urgent:!!job.urgent,memory:MEM.lessons.slice(-10),video_ids:job.videoIds||[],docs:docsPayload})});
     let txt=await res.text();
     try{ const p=JSON.parse(txt); if(p && typeof p.texte==='string') txt=p.texte; }catch(e){}
     if(!res.ok){ job.error="La cellule n'a pas pu produire (HTTP "+res.status+"). Ouvre n8n > Executions pour le détail."; }
@@ -1003,6 +1035,8 @@ function renderJobs(){
       ${j.files.length?`<div class="jfiles">${j.files.map(f=>`<span>📎 ${f}</span>`).join('')}</div>`:''}
       ${j.videoIds&&j.videoIds.length?`<div class="jfiles"><span style="background:#e7f4ec;border-color:#cbe7d6;color:var(--ok)">\u2713 Vid\u00e9o upload\u00e9e chez Meta (id ${j.videoIds.join(', ')})</span></div>`:''}
       ${j.videoWarn?`<div class="jfiles"><span style="background:var(--red-soft);border-color:#f2c9c9;color:var(--red-dk)">\u26a0 ${j.videoWarn}</span></div>`:''}
+      ${j.docsSent&&j.docsSent.length?`<div class="jfiles"><span style="background:#e7f4ec;border-color:#cbe7d6;color:var(--ok)">\u2713 ${j.docsSent.length} document(s) transmis et lus par les agents</span></div>`:''}
+      ${j.docWarn?`<div class="jfiles"><span style="background:var(--red-soft);border-color:#f2c9c9;color:var(--red-dk)">\u26a0 ${j.docWarn}</span></div>`:''}
       ${j.response?`<div class="jp" style="font-style:normal">${String(j.response).slice(0,1200)}</div>`:''}
       ${body}
     </div>`;
