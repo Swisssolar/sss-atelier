@@ -803,6 +803,7 @@ const store = {
 let FILES=[];
 let JOBS=store.get('jobs',[]);
 let MEM=store.get('mem',{done:0,ok:0,fix:0,lessons:[]});
+const VIDBLOBS={};
 function persistMem(){store.set('mem',MEM)}
 const SUGGS=[
   "Prépare une offre pour la villa Trient, 12 kWc avec batterie",
@@ -847,7 +848,7 @@ function detectRoute(t,files){
 function fmtSize(b){ if(b>1048576)return (b/1048576).toFixed(1)+" Mo"; if(b>1024)return Math.round(b/1024)+" Ko"; return b+" o"; }
 function extColor(e){ return {pdf:"#c0392b",doc:"#2b579a",docx:"#2b579a",xls:"#217346",xlsx:"#217346",csv:"#217346",jpg:"#8e6ac0",jpeg:"#8e6ac0",png:"#8e6ac0",heic:"#8e6ac0",ppt:"#d24726",pptx:"#d24726",xml:"#0b7285",mp4:"#CC0000",mov:"#CC0000",webm:"#CC0000",m4v:"#CC0000",avi:"#CC0000"}[e]||"#5a5854"; }
 function addFiles(list){
-  for(const f of list){ FILES.push({name:f.name,size:f.size}); }
+  for(const f of list){ FILES.push({name:f.name,size:f.size,file:f}); }
   renderFiles();
 }
 function removeFile(i){ FILES.splice(i,1); renderFiles(); }
@@ -898,6 +899,8 @@ function submitJob(){
   const job={id:Date.now(), ts:new Date().toLocaleString('fr-CH',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}),
     prompt:t, files:FILES.map(f=>f.name), type:r.type, chain:r.chain, pole:r.pole, done:false,
     urgent:/urgent|au plus vite|asap|tout de suite|imm[eé]diat/i.test(t)};
+  const vids=FILES.filter(f=>f.file && VIDEXT.test(f.name)).map(f=>f.file);
+  if(vids.length) VIDBLOBS[job.id]=vids;
   JOBS.unshift(job);
   document.getElementById('prompt').value=''; document.getElementById('route').classList.remove('on');
   FILES=[]; renderFiles();
@@ -920,8 +923,21 @@ function runDemo(job){
 }
 async function runLive(job,hook){
   try{
+    const blobs=VIDBLOBS[job.id]||[];
+    if(blobs.length){
+      for(const f of blobs){
+        try{
+          const fd=new FormData(); fd.append('video',f,f.name);
+          const vr=await fetch(hook.replace(/\/atelier\/?$/,'/meta-video'),{method:'POST',body:fd});
+          const vj=await vr.json().catch(()=>({}));
+          if(vj.video_id){ job.videoIds=(job.videoIds||[]).concat(vj.video_id); }
+          else{ job.videoWarn=(vj&&vj.erreur)?String(vj.erreur).slice(0,200):'upload vid\u00e9o non confirm\u00e9'; }
+        }catch(e){ job.videoWarn='upload vid\u00e9o impossible: '+e.message; }
+      }
+      delete VIDBLOBS[job.id];
+    }
     const res=await fetch(hook,{method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({prompt:job.prompt,files:job.files,type:job.type,ts:job.ts,urgent:!!job.urgent,memory:MEM.lessons.slice(-10)})});
+      body:JSON.stringify({prompt:job.prompt,files:job.files,type:job.type,ts:job.ts,urgent:!!job.urgent,memory:MEM.lessons.slice(-10),video_ids:job.videoIds||[]})});
     let txt=await res.text();
     try{ const p=JSON.parse(txt); if(p && typeof p.texte==='string') txt=p.texte; }catch(e){}
     if(!res.ok){ job.error="La cellule n'a pas pu produire (HTTP "+res.status+"). Ouvre n8n > Executions pour le détail."; }
@@ -985,6 +1001,8 @@ function renderJobs(){
         <div style="min-width:0"><div class="jt">${j.type}${j.pole?' · '+poleName(j.pole):''}${j.urgent?'<span class="badge-urg">PRIORITÉ</span>':''}</div><div class="jm">${j.ts}</div></div></div>
       <div class="jp">« ${j.prompt} »</div>
       ${j.files.length?`<div class="jfiles">${j.files.map(f=>`<span>📎 ${f}</span>`).join('')}</div>`:''}
+      ${j.videoIds&&j.videoIds.length?`<div class="jfiles"><span style="background:#e7f4ec;border-color:#cbe7d6;color:var(--ok)">\u2713 Vid\u00e9o upload\u00e9e chez Meta (id ${j.videoIds.join(', ')})</span></div>`:''}
+      ${j.videoWarn?`<div class="jfiles"><span style="background:var(--red-soft);border-color:#f2c9c9;color:var(--red-dk)">\u26a0 ${j.videoWarn}</span></div>`:''}
       ${j.response?`<div class="jp" style="font-style:normal">${String(j.response).slice(0,1200)}</div>`:''}
       ${body}
     </div>`;
