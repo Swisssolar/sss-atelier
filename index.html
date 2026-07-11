@@ -856,10 +856,14 @@ const ROUTES=[
 ];
 const VIDEXT=/\.(mp4|mov|avi|mkv|webm|m4v)$/i;
 const CAMTEXT=/camt|\.xml$/i;
+const PRODUIRE=/\b(pr[eé]pare|pr[eé]parer|r[eé]dige|r[eé]diger|cr[eé]e|cr[eé]er|g[eé]n[eè]re|g[eé]n[eé]rer|produis|produire|[eé]tablis|[eé]tablir|fais[- ]moi|[eé]cris|[eé]crire|envoie|envoyer)\b/i;
+const CONSULT=/(\?\s*$)|^\s*(combien|quels?|quelles?|qui|quand|o[uù]|liste|montre|affiche|donne[- ]moi|retrouve|cherche|recherche|as[- ]tu|vois[- ]tu|est[- ]ce que|y a[- ]t[- ]il|dis[- ]moi|dit moi|peux[- ]tu me dire)\b|\b(vois[- ]tu|tu vois|dans la m[eé]moire|en m[eé]moire|historique|derni[eè]re? (offre|facture|mail|email)|en attente|o[uù] en est)\b/i;
+function EST_CONSULT(t){ const s=String(t||'').trim(); return CONSULT.test(s) && !PRODUIRE.test(s); }
 function detectRoute(t,files){
   const dm=t.match(/^pour\s+([A-Za-zÀ-ÿ]+)\s*[:,]/i);
   if(dm){ const ag=AGENTS.find(a=>a.n.toLowerCase()===dm[1].toLowerCase());
     if(ag) return {pole:ag.p,type:"Tâche pour "+ag.n,chain:ag.n==="Victor"?["Victor","Diane"]:["Victor",ag.n,"Diane"]}; }
+  if(EST_CONSULT(t)) return {pole:null,type:"Consultation",chain:["Victor"]};
   for(const r of ROUTES){ if(r.re.test(t)) return r; }
   if((files||[]).some(f=>VIDEXT.test(f.name||f))) return ROUTES.find(r=>r.pole==="mkt");
   if((files||[]).some(f=>CAMTEXT.test(f.name||f))) return ROUTES.find(r=>r.type==="Comptabilité");
@@ -906,6 +910,7 @@ function applyMode(){
   else{ m.textContent="Mode démonstration"; m.classList.remove('live'); }
 }
 function stepsFor(r){
+  if((r.chain||[]).length===1) return ["Victor consulte la mémoire de l'entreprise"];
   const s=["Victor reçoit la demande et identifie le pôle"];
   for(const n of r.chain.slice(1,-1)){ s.push(n+" produit et contrôle le travail"); }
   s.push("Diane valide la cohérence et le standard AN-00354");
@@ -1016,6 +1021,9 @@ function renderJobs(){
       body=`<div class="tl" id="tl-${j.id}">${steps.map(s=>`<div class="tls"><div class="dot"></div><div class="tt">${s}</div></div>`).join('')}</div>`;
     } else if(j.error){
       body=`<div class="jp" style="border-color:#f2c9c9;background:var(--red-soft);color:var(--red-dk);font-style:normal">${j.error}</div>`;
+    } else if(j.type==="Consultation"){
+      const rep=(j.response||'').replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+      body=`<div class="jp" style="white-space:pre-wrap;font-style:normal;color:var(--ink)">${rep}</div>`;
     } else {
       const label=j.type+' — '+(clientOf(j.prompt)||'document');
       body=`<div class="tl">${steps.map(s=>`<div class="tls done"><div class="dot"></div><div class="tt">${s}</div></div>`).join('')}</div>
