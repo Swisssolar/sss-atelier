@@ -792,38 +792,7 @@ const SUGGS=[
   "Donne-moi l'historique des offres et le taux de conversion",
   "Protocole PV pour Monnet, 42 modules MaviWatt, onduleur Huawei 20K"
 ];
-const ROUTES=[
-  {re:/protocole|essais[- ]mesures|\bpac\b|pompe [aà] chaleur/i, pole:"conf", type:"Protocole", chain:["Victor","Raphaël","Denis","Diane"]},
-  {re:/historique|taux de conversion|converti|combien.+offres|offres.+(juin|juillet|ao[uû]t|septembre|octobre|novembre|d[eé]cembre|janvier|f[eé]vrier|mars|avril|mai|mois|attente|sign[eé]e)|mes offres|suivi (des )?offres/i, pole:"dir", type:"Reporting", chain:["Victor","Inès","Manon","Diane"]},
-  {re:/offre|devis|chiffr|dimensionn|prix|kwc|panneau|batterie|onduleur/i, pole:"devis", type:"Offre",    chain:["Victor","Marc","Thomas","Diane"]},
-  {re:/audit|relev[eé]|toiture|permis|avant-projet|mesure/i,              pole:"audit", type:"Audit",    chain:["Victor","Julien","Denis","Diane"]},
-  {re:/relance|pipeline|crm|apporteur|commission/i,                        pole:"pipe",  type:"Relance",  chain:["Victor","Léa","Diane"]},
-  {re:/camt|transactions? bancaires?|relevé bancaire|rapprochement|comptabilité/i, pole:"dir", type:"Comptabilité", chain:["Victor","Mathieu","Gérard","Diane"]},
-  {re:/cash|tr[eé]sorerie|liquidit/i,                                      pole:"dir",   type:"Point cash",chain:["Victor","Mathieu","Gérard","Diane"]},
-  {re:/facture|tva|compta|paiement|bexio/i,                                pole:"admin", type:"Finance",  chain:["Victor","Pierre","Gérard","Diane"]},
-  {re:/contrat|juridique|cgv|clause|rh /i,                                 pole:"admin", type:"Contrat",  chain:["Victor","Vincent","Guillaume","Diane"]},
-  {re:/mail|courriel|infomaniak/i,                                         pole:"admin", type:"Courrier", chain:["Victor","Sarah","Diane"]},
-  {re:/client|sav|garantie|panne|satisfaction/i,                           pole:"sav",   type:"Client",   chain:["Victor","Emma","Diane"]},
-  {re:/r[eé]gie|powerpoint|pr[eé]sentation|visite/i,                       pole:"regies",type:"Régies",   chain:["Victor","Florence","Diane"]},
-  {re:/linkedin|tiktok|instagram|meta ?ads?|facebook|vid[eé]o|reel|cr[eé]ativ|publicit|campagne|contenu|seo|marketing/i, pole:"mkt", type:"Créative Meta Ads", chain:["Victor","Nora","Yanis","Diane"]},
-  {re:/subvention|pronovo|oibt|conformit[eé]|achat|fournisseur/i,          pole:"conf",  type:"Conformité",chain:["Victor","Michel","Denis","Diane"]},
-  {re:/kpi|tableau de bord|reporting|historique des offres|taux de conversion|conversion/i,                                    pole:"dir",   type:"Reporting",chain:["Victor","Inès","Diane"]}
-];
 const VIDEXT=/\.(mp4|mov|avi|mkv|webm|m4v)$/i;
-const CAMTEXT=/camt|\.xml$/i;
-const PRODUIRE=/\b(pr[eé]pare|pr[eé]parer|r[eé]dige|r[eé]diger|cr[eé]e|cr[eé]er|g[eé]n[eè]re|g[eé]n[eé]rer|produis|produire|[eé]tablis|[eé]tablir|fais[- ]moi|[eé]cris|[eé]crire|envoie|envoyer)\b/i;
-const CONSULT=/(\?\s*$)|^\s*(combien|quels?|quelles?|qui|quand|o[uù]|liste|montre|affiche|donne[- ]moi|retrouve|cherche|recherche|as[- ]tu|vois[- ]tu|est[- ]ce que|y a[- ]t[- ]il|dis[- ]moi|dit moi|peux[- ]tu me dire)\b|\b(vois[- ]tu|tu vois|dans la m[eé]moire|en m[eé]moire|historique|derni[eè]re? (offre|facture|mail|email)|en attente|o[uù] en est)\b/i;
-function EST_CONSULT(t){ const s=String(t||'').trim(); return CONSULT.test(s) && !PRODUIRE.test(s); }
-function detectRoute(t,files){
-  const dm=t.match(/^pour\s+([A-Za-zÀ-ÿ]+)\s*[:,]/i);
-  if(dm){ const ag=AGENTS.find(a=>a.n.toLowerCase()===dm[1].toLowerCase());
-    if(ag) return {pole:ag.p,type:"Tâche pour "+ag.n,chain:ag.n==="Victor"?["Victor","Diane"]:["Victor",ag.n,"Diane"]}; }
-  if(EST_CONSULT(t)) return {pole:null,type:"Consultation",chain:["Victor"]};
-  for(const r of ROUTES){ if(r.re.test(t)) return r; }
-  if((files||[]).some(f=>VIDEXT.test(f.name||f))) return ROUTES.find(r=>r.pole==="mkt");
-  if((files||[]).some(f=>CAMTEXT.test(f.name||f))) return ROUTES.find(r=>r.type==="Comptabilité");
-  return {pole:null,type:"Livrable",chain:["Victor","Diane"]};
-}
 function fmtSize(b){ if(b>1048576)return (b/1048576).toFixed(1)+" Mo"; if(b>1024)return Math.round(b/1024)+" Ko"; return b+" o"; }
 function extColor(e){ return {pdf:"#c0392b",doc:"#2b579a",docx:"#2b579a",xls:"#217346",xlsx:"#217346",csv:"#217346",jpg:"#8e6ac0",jpeg:"#8e6ac0",png:"#8e6ac0",heic:"#8e6ac0",ppt:"#d24726",pptx:"#d24726",xml:"#0b7285",mp4:"#CC0000",mov:"#CC0000",webm:"#CC0000",m4v:"#CC0000",avi:"#CC0000"}[e]||"#5a5854"; }
 function addFiles(list){
@@ -847,9 +816,8 @@ function updateRoute(){
   const t=document.getElementById('prompt').value.trim();
   const el=document.getElementById('route');
   if(t.length<6){ el.classList.remove('on'); return; }
-  const r=detectRoute(t,FILES);
   el.classList.add('on');
-  el.innerHTML='Type détecté : '+r.type+' — Victor mobilisera lui-même les agents nécessaires.';
+  el.innerHTML="Victor analyse lui-m\u00eame votre demande et mobilise les agents n\u00e9cessaires.";
 }
 function saveHook(){
   const v=document.getElementById('hook').value.trim();
@@ -899,9 +867,8 @@ async function loadDash(){
 function submitJob(){
   const t=document.getElementById('prompt').value.trim();
   if(!t){ document.getElementById('prompt').focus(); return; }
-  const r=detectRoute(t,FILES);
   const job={id:Date.now(), ts:new Date().toLocaleString('fr-CH',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}),
-    prompt:t, files:FILES.map(f=>f.name), type:r.type, done:false,
+    prompt:t, files:FILES.map(f=>f.name), type:null, done:false,
     urgent:/urgent|au plus vite|asap|tout de suite|imm[eé]diat/i.test(t)};
   const vids=FILES.filter(f=>f.file && VIDEXT.test(f.name)).map(f=>f.file);
   if(vids.length) VIDBLOBS[job.id]=vids;
@@ -939,10 +906,10 @@ async function runLive(job,hook){
     delete DOCBLOBS[job.id];
     if(docsPayload.length) job.docsSent=docsPayload.map(d=>d.name);
     const res=await fetch(hook,{method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({prompt:job.prompt,files:job.files,type:job.type,ts:job.ts,urgent:!!job.urgent,memory:MEM.lessons.slice(-10),video_ids:job.videoIds||[],docs:docsPayload})});
+      body:JSON.stringify({prompt:job.prompt,files:job.files,ts:job.ts,urgent:!!job.urgent,memory:MEM.lessons.slice(-10),video_ids:job.videoIds||[],docs:docsPayload})});
     let txt=await res.text(); let payload=null;
     try{ payload=JSON.parse(txt); if(payload && typeof payload.texte==='string') txt=payload.texte; }catch(e){}
-    if(payload){ job.agents=Array.isArray(payload.agents_mobilises)?payload.agents_mobilises:null; job.document=payload.document||null; job.diag=payload.diagnostic||null; }
+    if(payload){ job.agents=Array.isArray(payload.agents_mobilises)?payload.agents_mobilises:null; job.document=payload.document||null; job.diag=payload.diagnostic||null; job.type=payload.type||'Livrable'; job.numero=payload.numero||null; }
     if(!res.ok){
       const why=(res.status===503)?"la base de données de la cellule est indisponible (503), voir PROCEDURE_URGENCE_N8N_POSTGRES"
         :(res.status===404)?"le webhook n'existe pas ou le workflow n'est pas publié (404)"
@@ -961,7 +928,7 @@ async function runLive(job,hook){
 }
 function persistJobs(){ store.set('jobs',JOBS.slice(0,20)); }
 function clearJobs(){ JOBS=[]; persistJobs(); renderJobs(); }
-function jobIcon(t){ return {"Offre":"📄","Audit":"📐","Relance":"📮","Point cash":"💰","Finance":"🧾","Contrat":"✍️","Courrier":"✉️","Client":"🤝","Régies":"🏢","Créative Meta Ads":"🎬","Conformité":"✅","Protocole":"📋","Reporting":"📊","Comptabilité":"🔐"}[t]||"📄"; }
+function jobIcon(t){ return {"Offre":"\ud83d\udcc4","Consultation":"\ud83d\udcac","Facture":"\ud83e\uddfe","Protocole":"\ud83d\udccb","Marketing":"\ud83c\udfac","Tresorerie":"\ud83d\udcb0","Relance":"\ud83d\udcee","Audit":"\ud83d\udcd0"}[t]||"\ud83d\udcc4"; }
 function memCard(){
   return `<div class="card memcard"><h3>Mémoire de la cellule</h3>
   <p style="font-size:12.5px;color:#bdbdbd;margin-top:4px">Chaque validation ou correction est retenue : les agents s'adaptent à vos préférences et accélèrent à chaque tâche.</p>
@@ -971,11 +938,11 @@ function memCard(){
 }
 function fbJob(id,good){
   const j=JOBS.find(x=>x.id===id); if(!j||j.fb)return;
-  if(good){ j.fb='ok'; MEM.ok++; MEM.lessons.push('Format validé : '+j.type+' — à reproduire.'); }
+  if(good){ j.fb='ok'; MEM.ok++; MEM.lessons.push('Format validé : '+(j.type||'Livrable')+' — à reproduire.'); }
   else{
     const c=prompt("Qu'est-ce que la cellule doit corriger ou retenir pour la prochaine fois ?");
     if(c===null)return;
-    j.fb='ko'; MEM.fix++; MEM.lessons.push((c&&c.trim()?c.trim():'Correction demandée')+' ('+j.type+')');
+    j.fb='ko'; MEM.fix++; MEM.lessons.push((c&&c.trim()?c.trim():'Correction demandée')+' ('+(j.type||'Livrable')+')');
   }
   MEM.lessons=MEM.lessons.slice(-12);
   persistMem(); persistJobs(); renderJobs();
@@ -1008,7 +975,7 @@ function renderJobs(){
     }
     return `<div class="job">
     <div class="jh"><div class="jic">${jobIcon(j.type)}</div>
-    <div style="min-width:0"><div class="jt">${j.type}${j.urgent?'<span class="badge-urg">PRIORITÉ</span>':''}</div><div class="jm">${j.ts}</div></div></div>
+    <div style="min-width:0"><div class="jt">${j.type||"Analyse en cours"}${j.urgent?'<span class="badge-urg">PRIORITÉ</span>':''}</div><div class="jm">${j.ts}</div></div></div>
     <div class="jp">« ${j.prompt} »</div>
     ${j.files.length?`<div class="jfiles">${j.files.map(f=>`<span>📎 ${f}</span>`).join('')}</div>`:''}
     ${j.videoIds&&j.videoIds.length?`<div class="jfiles"><span style="background:#e7f4ec;border-color:#cbe7d6;color:var(--ok)">✓ Vidéo uploadée chez Meta (id ${j.videoIds.join(', ')})</span></div>`:''}
