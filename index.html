@@ -909,7 +909,7 @@ async function runLive(job,hook){
       body:JSON.stringify({prompt:job.prompt,files:job.files,ts:job.ts,urgent:!!job.urgent,memory:MEM.lessons.slice(-10),video_ids:job.videoIds||[],docs:docsPayload})});
     let txt=await res.text(); let payload=null;
     try{ payload=JSON.parse(txt); if(payload && typeof payload.texte==='string') txt=payload.texte; }catch(e){}
-    if(payload){ job.agents=Array.isArray(payload.agents_mobilises)?payload.agents_mobilises:null; job.document=payload.document||null; job.diag=payload.diagnostic||null; job.type=payload.type||'Livrable'; job.numero=payload.numero||null; }
+    if(payload){ job.agents=Array.isArray(payload.agents_mobilises)?payload.agents_mobilises:null; job.document=payload.document||null; job.diag=payload.diagnostic||null; job.type=payload.type||'Livrable'; job.numero=payload.numero||null; job.meta={niveau:(payload.niveau!==undefined?payload.niveau:null),confiance:(payload.confiance!==undefined?payload.confiance:null),risque:payload.risque||null,urgence:payload.urgence||null,temps_estime:payload.temps_estime||null,controleur:payload.controleur||null,justification:payload.justification||null,journal:Array.isArray(payload.journal)?payload.journal:[]}; }
     if(!res.ok){
       const why=(res.status===503)?"la base de données de la cellule est indisponible (503), voir PROCEDURE_URGENCE_N8N_POSTGRES"
         :(res.status===404)?"le webhook n'existe pas ou le workflow n'est pas publié (404)"
@@ -968,7 +968,11 @@ function renderJobs(){
         <div><div class="dn">${(j.document&&j.document.nom)||'Document'}</div><div class="ds">Document réel généré par la cellule</div></div>
         <div class="da"><button onclick="openDoc(${j.id})" class="alt">Aperçu</button><button onclick="dlDoc(${j.id})">Télécharger</button></div>
       </div>`:(j.type==="Consultation"?'':`<div class="jp" style="font-style:normal;color:#6c6c6c">Aucun document généré : le livrable est le texte ci-dessus.</div>`);
-      body=`<div class="jp" style="white-space:pre-wrap;font-style:normal;color:var(--ink)">${rep}</div>${tl}${doc}
+      const _vm=j.meta||null;
+      const _ve=(t)=>String(t==null?'':t).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+      const _vc=(l,v)=>(v==null||v==='')?'':'<span style="font-size:12px;padding:2px 9px;border:1px solid #e7e5e2;border-radius:999px;background:#fff;color:#4a4a4a"><b style="color:#171717">'+_ve(l)+'</b> '+_ve(v)+'</span>';
+      const vmeta=!_vm?'':'<div style="margin:10px 0;padding:10px 12px;border:1px solid #e7e5e2;border-radius:12px;background:#fafafa">'+'<div style="font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:#8a8a8a;margin-bottom:7px">Décision de Victor</div>'+'<div style="display:flex;flex-wrap:wrap;gap:6px">'+_vc('Niveau',_vm.niveau)+_vc('Confiance',_vm.confiance==null?null:_vm.confiance+' %')+_vc('Risque',_vm.risque)+_vc('Urgence',_vm.urgence)+_vc('Temps estimé',_vm.temps_estime)+_vc('Contrôleur',_vm.controleur||'aucun')+'</div>'+(_vm.justification?'<div style="margin-top:8px;font-size:13px;color:#4a4a4a">'+_ve(_vm.justification)+'</div>':'')+((_vm.journal&&_vm.journal.length)?'<details style="margin-top:7px"><summary style="font-size:12px;color:#6c6c6c;cursor:pointer">Journal des décisions ('+_vm.journal.length+')</summary>'+'<ul style="margin:6px 0 0;padding-left:18px;font-size:12.5px;color:#4a4a4a">'+_vm.journal.map(x=>'<li>'+_ve(x)+'</li>').join('')+'</ul></details>':'')+'</div>';
+      body=`<div class="jp" style="white-space:pre-wrap;font-style:normal;color:var(--ink)">${rep}</div>${tl}${vmeta}${doc}
       ${j.fb==='ok'?`<div class="fbrow"><span class="fbdone">✓ Validé, préférence mémorisée par la cellule</span></div>`
       :j.fb==='ko'?`<div class="fbrow"><span class="fbdone" style="color:var(--red-dk)">↺ Correction retenue, intégrée aux prochains livrables</span></div>`
       :`<div class="fbrow"><button onclick="fbJob(${j.id},true)">👍 Valider</button><button class="ko" onclick="fbJob(${j.id},false)">✎ Demander une correction</button></div>`}`;
