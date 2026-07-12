@@ -322,7 +322,7 @@
     <div class="stats">
       <div class="stat"><b data-count="44">0</b><span>agents spécialisés</span></div>
       <div class="stat"><b data-count="9">0</b><span>pôles + pilotage</span></div>
-      <div class="stat"><b data-count="10">0</b><span>flux automatisés 24/7</span></div>
+      <div class="stat"><b data-count="9">0</b><span>flux automatisés 24/7</span></div>
       <div class="stat"><b data-count="1">0</b><span>point d'entrée : Victor</span></div>
     </div>
   </div>
@@ -357,7 +357,7 @@
   <div class="sec-intro">
     <div class="eyebrow">Atelier · Guichet unique</div>
     <h1>Déposez. Demandez. Récupérez.</h1>
-    <p class="lead">Glissez vos dossiers, écrivez votre demande en langage normal. Victor identifie le pôle, la cellule produit, Diane valide — et le livrable revient ici, prêt à l'usage.</p>
+    <p class="lead">Glissez vos dossiers, écrivez votre demande en langage normal. Victor analyse, la cellule réelle produit, et le livrable revient ici, prêt à l'usage.</p>
   </div>
   <div class="studio">
     <div class="studio-left">
@@ -378,12 +378,12 @@
         <div class="route" id="route"></div>
         <div class="sendrow">
           <button class="btn primary" id="sendbtn" onclick="submitJob()">Envoyer à Victor →</button>
-          <span class="mode" id="modeTag">Mode démonstration</span>
+          <span class="mode" id="modeTag" style="display:none"></span>
         </div>
       </div>
       <div class="card connect">
-        <h3>Brancher la cellule réelle <span class="tag" style="vertical-align:2px">optionnel</span></h3>
-        <p>Collez l'URL du webhook n8n de la cellule : l'Atelier lui transmettra vos demandes et affichera les vrais livrables. Sans URL, l'Atelier fonctionne en démonstration et génère un gabarit de livrable au standard AN-00354.</p>
+        <h3>Connexion à la cellule réelle</h3>
+        <p>L'Atelier transmet vos demandes à la cellule réelle (n8n) et affiche ses livrables. L'URL est préconfigurée : ne la modifiez que si l'adresse de la cellule change.</p>
         <div class="hookrow">
           <input id="hook" placeholder="https://n8n.votre-domaine.ch/webhook/atelier" spellcheck="false">
           <button class="btn ghost" onclick="saveHook()">Enregistrer</button>
@@ -422,7 +422,7 @@
       <div class="tree">
 <span class="root">📁 Swiss Solar System</span>
 ├── 📁 <b>Clients</b>            <i>fiches, échanges, mémoire client</i>
-├── 📁 <b>Offres</b>             <i>offres émises (PDF AN-00354)</i>
+├── 📁 <b>Offres</b>             <i>offres émises (PDF, modèles AN-00360 à 362)</i>
 ├── 📁 <b>Audits</b>             <i>relevés terrain, audits bâtiment</i>
 ├── 📁 <b>Avant-projets</b>      <i>dossiers de permis</i>
 ├── 📁 <b>Factures</b>          <i>entrantes et sortantes (Bexio)</i>
@@ -467,48 +467,16 @@
   <div class="sec-intro">
     <div class="eyebrow">Pilotage</div>
     <h1>Tableau de bord</h1>
-    <p class="lead">Gabarit du tableau de bord vivant. Les chiffres ci-dessous sont des exemples illustratifs : une fois branché à Bexio et Infomaniak, Inès et Mathieu les alimentent automatiquement.</p>
+    <p class="lead">Chiffres réels uniquement, issus de la synchronisation quotidienne Bexio vers la mémoire Postgres de la cellule. Si les données ne sont pas joignables, aucun chiffre n'est affiché.</p>
   </div>
-
-  <h2>KPI de la semaine · Inès</h2>
-  <div class="kpi">
-    <div class="card"><span class="lbl">CA signé (mois)</span><b>184 200 CHF</b><span class="delta up">▲ 12% vs S-1</span></div>
-    <div class="card"><span class="lbl">CA facturé</span><b>142 600 CHF</b><span class="delta up">▲ 6%</span></div>
-    <div class="card"><span class="lbl">CA encaissé</span><b>128 900 CHF</b><span class="delta down">▼ 4%</span></div>
-    <div class="card"><span class="lbl">Marge moyenne</span><b>21,4 %</b><span class="delta up">▲ 0,8 pt</span></div>
-  </div>
-  <div class="kpi" style="margin-top:14px">
-    <div class="card"><span class="lbl">Taux de transformation</span><b>32 %</b><span class="delta up">▲ 3 pts</span></div>
-    <div class="card"><span class="lbl">Délai moyen d'une offre</span><b>1,8 j</b><span class="delta up">cible &lt; 24h après données</span></div>
-    <div class="card"><span class="lbl">Délai émission → signature</span><b>19 j</b><span class="delta down">▼ 2 j</span></div>
-    <div class="card"><span class="lbl">Offres en attente</span><b>27</b><span class="delta">dont 9 à relancer</span></div>
-  </div>
-
-  <h2 style="margin-top:44px">Point cash quotidien · Mathieu</h2>
-  <div class="card" style="padding:0;overflow:hidden">
-    <table class="cash">
-      <thead><tr><th>Poste</th><th>Échéance</th><th>Statut</th><th>Montant</th></tr></thead>
-      <tbody>
-        <tr><td>Trésorerie disponible</td><td>Aujourd'hui</td><td><span class="pill ok">Disponible</span></td><td>63 400 CHF</td></tr>
-        <tr><td>Encaissements attendus (semaine)</td><td>7 j</td><td><span class="pill ok">Prévu</span></td><td>+ 41 200 CHF</td></tr>
-        <tr><td>Factures fournisseurs à régler</td><td>12 août</td><td><span class="pill al">À valider</span></td><td>− 22 800 CHF</td></tr>
-        <tr><td>Salaires</td><td>25 août</td><td><span class="pill ok">Planifié</span></td><td>− 34 500 CHF</td></tr>
-        <tr><td>TVA trimestrielle</td><td>31 août</td><td><span class="pill al">À provisionner</span></td><td>− 11 900 CHF</td></tr>
-      </tbody>
-    </table>
-  </div>
-  <p class="note">Alerte anticipée type : « besoin de 28 400 CHF d'ici le 18 août ». Projection à 30 et 60 jours consolidée chaque matin (Bexio + banque).</p>
-
-  <h2 style="margin-top:44px">Pipeline · Léa &amp; Manon</h2>
-  <div class="board" id="pipeline"></div>
-  <p class="note">Chaque offre porte un statut, un prochain pas et une échéance. Kevin prépare les relances J+3 / J+7 / J+14 ; vous déclenchez l'envoi.</p>
+  <div id="dashreal"><p class="note">Chargement des données réelles…</p></div>
 </section>
 
 <!-- FLOWS -->
 <section id="flows" class="page">
   <div class="sec-intro">
     <div class="eyebrow">Automatisation 24/7</div>
-    <h1>Les 10 flux n8n</h1>
+    <h1>Les 9 flux n8n</h1>
     <p class="lead">Moteur n8n hébergé en Suisse ou UE (LPD), cerveau API Claude, sources Infomaniak et Bexio. Chaque action sensible passe par une validation. n8n travaille pendant que vous dormez, sans jamais agir seul sur l'envoi ou le paiement.</p>
   </div>
   <div id="flowgrid" class="grid g2"></div>
@@ -611,8 +579,8 @@ const AGENTS = [
   // Devis
   {n:"Marc",r:"Chargé d'affaires (lead)",p:"devis",k:"lead",m:"Transforme une demande en offre prête à envoyer, sous 24h après données complètes.",pts:["Vérifie la complétude des données d'entrée","Coordonne Hugo, Camille, Chloé, Thomas","Garant du délai et de la complétude"]},
   {n:"Hugo",r:"Dimensionnement",p:"devis",k:"",m:"Dimensionne l'installation : puissance, onduleur et batterie Each Energy, structure K2, production, orientation, ombrage.",pts:["Bifacial 3-10 %, rendement onduleur 98,2-98,5 %","Orientation réelle, thermique en toiture uniquement","Documente ses hypothèses pour Chloé et Thomas"]},
-  {n:"Camille",r:"Rédaction d'offre",p:"devis",k:"",m:"Produit l'offre PDF au standard AN-00354, prête à présenter.",pts:["Aucun tableau dans les offres client","Style sobre, vouvoiement, ton premium","Ne retire aucun contenu sans accord"]},
-  {n:"Chloé",r:"Marges et rentabilité",p:"devis",k:"",m:"Garantit le prix cible et la rentabilité attendue (méthode Trient AN-00354).",pts:["Vérifie le seuil de marge, intègre commissions et subventions","Signale toute offre sous le seuil","Escalade les remises exceptionnelles à Alex"]},
+  {n:"Camille",r:"Rédaction d'offre",p:"devis",k:"",m:"Produit l'offre PDF au format officiel SSS (modèles AN-00360 à 362), prête à présenter.",pts:["Aucun tableau dans les offres client","Style sobre, vouvoiement, ton premium","Ne retire aucun contenu sans accord"]},
+  {n:"Chloé",r:"Marges et rentabilité",p:"devis",k:"",m:"Garantit le prix cible et la rentabilité attendue (méthode Trient).",pts:["Vérifie le seuil de marge, intègre commissions et subventions","Signale toute offre sous le seuil","Escalade les remises exceptionnelles à Alex"]},
   {n:"Thomas",r:"Contrôleur technique",p:"devis",k:"ctrl",m:"Valide la solidité technique des offres ET de l'audit avant sortie.",pts:["Rendements, bifacial, orientation, périmètre thermique","Cohérence prix / technique","Valide ou renvoie avec corrections précises"]},
   // Audit
   {n:"Julien",r:"Ingénieur audit (lead)",p:"audit",k:"lead",m:"Couvre protocoles de mesure, audits bâtiment et avant-projets/permis.",pts:["Coordonne Nadia, Franck, Lucas","Garantit la rigueur méthodologique","Contrôles par Thomas (technique) et Denis (réglementaire)"]},
@@ -641,7 +609,7 @@ const AGENTS = [
   // Régies
   {n:"Florence",r:"Responsable régies (lead)",p:"regies",k:"lead",m:"Industrialise la relation avec les régies immobilières.",pts:["Coordonne Karim, Alice, Bruno","Canal récurrent et prévisible","Aucun engagement contractuel sans validation"]},
   {n:"Karim",r:"Process et cadence de visites",p:"regies",k:"",m:"Organise la cadence de visites (15 à 20 sites/mois, type M&B Gérance).",pts:["Planning et tournées optimisées","Comptes rendus structurés","Rendez-vous validés avant prise de contact"]},
-  {n:"Alice",r:"Production PowerPoint et supports",p:"regies",k:"",m:"Produit les PowerPoint et supports au standard visuel SSS, prêts à présenter.",pts:["Présentations sobres et premium","Conformes à l'identité SSS et AN-00354","S'appuie sur les gabarits d'Éric"]},
+  {n:"Alice",r:"Production PowerPoint et supports",p:"regies",k:"",m:"Produit les PowerPoint et supports au standard visuel SSS, prêts à présenter.",pts:["Présentations sobres et premium","Conformes à l'identité visuelle SSS","S'appuie sur les gabarits d'Éric"]},
   {n:"Bruno",r:"Contrats de maintenance récurrents",p:"regies",k:"",m:"Structure et suit les contrats de maintenance récurrents.",pts:["Périmètre, fréquence, tarif","Revenu récurrent prévisible","Coordonne avec David et Guillaume"]},
   // Marketing
   {n:"Nora",r:"Responsable développement (lead)",p:"mkt",k:"lead",m:"Pilote la notoriété et le développement, sous coordination commerciale d'Alex.",pts:["Ligne éditoriale et plan de contenu","Coordonne Yanis et Elodie","Aligne le marketing sur les leads qualifiés"]},
@@ -663,19 +631,13 @@ const FLOWS = [
   {who:"Pierre", t:"Ingestion factures", d:"Extraction des factures, brouillon Bexio, mise en attente de validation.", v:"Jamais de paiement automatique"},
   {who:"Manon", t:"Sync pipeline", d:"Chaque offre alimente le suivi, statut tracé.", v:"Lecture / écriture CRM"},
   {who:"Kevin", t:"Relances", d:"Offres en attente au-delà des seuils, brouillon préparé, envoi sur clic.", v:"Envoi sur validation"},
-  {who:"Marc & Camille", t:"Génération d'offre", d:"Données en entrée, dimensionnement, PDF AN-00354, validation Diane.", v:"Remise pour revue"},
+  {who:"Marc & Camille", t:"Génération d'offre", d:"Données en entrée, dimensionnement, PDF au format officiel SSS, validation Diane.", v:"Remise pour revue"},
   {who:"Justine", t:"Enrichissement client", d:"Chaque échange met à jour la fiche client automatiquement.", v:"Interne, LPD"},
   {who:"Karim & Alice", t:"Cadence régies", d:"Planning de visites, PDF d'audit, PowerPoint, comptes rendus.", v:"Prise de RDV validée"},
   {who:"Aline", t:"Échéances subventions", d:"Surveillance des délais Pronovo et cantonaux, alerte avant échéance.", v:"Dépôt validé"},
   {who:"Inès", t:"KPI hebdo", d:"Chaque lundi, tableau de bord complet consolidé.", v:"Digest automatique"}
 ];
 
-const PIPELINE = [
-  {col:"Offres émises", deals:[{c:"Villa Trient",m:"48 200 CHF · 22%"},{c:"Régie M&B — 3 sites",m:"131 000 CHF · 19%"},{c:"Ferme Essertes",m:"27 400 CHF · 24%"}]},
-  {col:"Relance en cours", deals:[{c:"Duplex Pully",m:"J+7 · 33 100 CHF"},{c:"Villa Féchy",m:"J+14 · 41 900 CHF"}]},
-  {col:"En négociation", deals:[{c:"Immeuble Lausanne",m:"88 500 CHF · 18%"},{c:"Villa Morges",m:"36 200 CHF · 23%"}]},
-  {col:"Signées (mois)", deals:[{c:"Villa Gland",m:"52 800 CHF ✓"},{c:"Atelier Nyon",m:"44 300 CHF ✓"},{c:"Villa Rolle",m:"39 700 CHF ✓"}]}
-];
 
 
 
@@ -787,13 +749,6 @@ function renderFlows(){
     </div>`).join('');
 }
 
-function renderPipeline(){
-  document.getElementById('pipeline').innerHTML=PIPELINE.map(c=>`
-    <div class="col">
-      <h4>${c.col}<span>${c.deals.length}</span></h4>
-      ${c.deals.map(d=>`<div class="deal"><div class="c">${d.c}</div><div class="m"><span>${d.m}</span></div></div>`).join('')}
-    </div>`).join('');
-}
 
 /* ---------- ATELIER ---------- */
 const store = {
@@ -894,8 +849,7 @@ function updateRoute(){
   if(t.length<6){ el.classList.remove('on'); return; }
   const r=detectRoute(t,FILES);
   el.classList.add('on');
-  el.innerHTML='Circuit prévu : '+r.chain.map(n=>`<span class="rc"><img src="${AV[n]}" alt="">${n}</span>`).join('<span class="ra">→</span>')
-    +(r.pole?`<span style="margin-left:4px">· pôle ${poleName(r.pole)}</span>`:'');
+  el.innerHTML='Type détecté : '+r.type+' — Victor mobilisera lui-même les agents nécessaires.';
 }
 function saveHook(){
   const v=document.getElementById('hook').value.trim();
@@ -903,26 +857,51 @@ function saveHook(){
   applyMode();
 }
 function applyMode(){
-  const hook=store.get('hook','');
-  document.getElementById('hook').value=hook||'https://n8n-production-31f2.up.railway.app/webhook/atelier';
+  document.getElementById('hook').value=effectiveHook();
   const m=document.getElementById('modeTag');
-  if(hook){ m.textContent="Connecté à n8n"; m.classList.add('live'); }
-  else{ m.textContent="Mode démonstration"; m.classList.remove('live'); }
+  if(m){ m.style.display='none'; m.textContent=''; }
 }
-function stepsFor(r){
-  if((r.chain||[]).length===1) return ["Victor consulte la mémoire de l'entreprise"];
-  const s=["Victor reçoit la demande et identifie le pôle"];
-  for(const n of r.chain.slice(1,-1)){ s.push(n+" produit et contrôle le travail"); }
-  s.push("Diane valide la cohérence et le standard AN-00354");
-  s.push("Livrable prêt — à vous de décider");
-  return s;
+const DEFAULT_HOOK='https://n8n-production-31f2.up.railway.app/webhook/atelier';
+function effectiveHook(){ return store.get('hook','')||DEFAULT_HOOK; }
+const DASH_HOOK='https://n8n-production-31f2.up.railway.app/webhook/dashboard-sss';
+async function loadDash(){
+  const el=document.getElementById('dashreal'); if(!el) return;
+  const esc=s=>String(s==null?'':s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+  const chf=n=>{const x=Number(n)||0;return x.toLocaleString('fr-CH',{minimumFractionDigits:2,maximumFractionDigits:2});};
+  const card=(l,v)=>'<div class="card"><span class="lbl">'+l+'</span><b>'+v+'</b></div>';
+  try{
+    const r=await fetch(DASH_HOOK);
+    if(!r.ok) throw new Error('HTTP '+r.status);
+    const d=await r.json();
+    const fo=d.factures_ouvertes||{};
+    let h='<h2>Factures ouvertes (données Bexio réelles)</h2><div class="kpi">'
+      +card('Factures ouvertes',esc(fo.nombre))
+      +card('Solde ouvert',chf(fo.solde)+' CHF')
+      +card('Dont en retard',esc(fo.en_retard))
+      +card('Solde en retard',chf(fo.solde_retard)+' CHF')
+      +'</div>';
+    if(Array.isArray(d.ca_mensuel)&&d.ca_mensuel.length){
+      h+='<h2 style="margin-top:44px">CA mensuel (facturé / encaissé)</h2><div class="card" style="padding:0;overflow:hidden"><table class="cash"><thead><tr><th>Mois</th><th>Facturé</th><th>Encaissé</th></tr></thead><tbody>'
+        +d.ca_mensuel.map(m=>'<tr><td>'+esc(m.mois)+'</td><td>'+chf(m.facture)+' CHF</td><td>'+chf(m.encaisse)+' CHF</td></tr>').join('')
+        +'</tbody></table></div>';
+    }
+    if(Array.isArray(d.encours)&&d.encours.length){
+      h+='<h2 style="margin-top:44px">Plus gros encours clients</h2><div class="card" style="padding:0;overflow:hidden"><table class="cash"><thead><tr><th>Client</th><th>Solde ouvert</th></tr></thead><tbody>'
+        +d.encours.map(c=>'<tr><td>'+esc(c.client)+'</td><td>'+chf(c.solde)+' CHF</td></tr>').join('')
+        +'</tbody></table></div>';
+    }
+    h+='<p class="note">Données réelles Bexio vers Postgres · mise à jour : '+esc(d.maj||'synchronisation quotidienne 04h15')+'.</p>';
+    el.innerHTML=h;
+  }catch(e){
+    el.innerHTML='<p class="note">Données réelles indisponibles pour le moment ('+esc(e.message)+"). Aucun chiffre illustratif n'est affiché.</p>";
+  }
 }
 function submitJob(){
   const t=document.getElementById('prompt').value.trim();
   if(!t){ document.getElementById('prompt').focus(); return; }
   const r=detectRoute(t,FILES);
   const job={id:Date.now(), ts:new Date().toLocaleString('fr-CH',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}),
-    prompt:t, files:FILES.map(f=>f.name), type:r.type, chain:r.chain, pole:r.pole, done:false,
+    prompt:t, files:FILES.map(f=>f.name), type:r.type, done:false,
     urgent:/urgent|au plus vite|asap|tout de suite|imm[eé]diat/i.test(t)};
   const vids=FILES.filter(f=>f.file && VIDEXT.test(f.name)).map(f=>f.file);
   if(vids.length) VIDBLOBS[job.id]=vids;
@@ -932,21 +911,7 @@ function submitJob(){
   document.getElementById('prompt').value=''; document.getElementById('route').classList.remove('on');
   FILES=[]; renderFiles();
   renderJobs();
-  const hook=store.get('hook','');
-  if(hook){ runLive(job,hook); } else { runDemo(job); }
-}
-function runDemo(job){
-  const steps=stepsFor({chain:job.chain});
-  let i=0;
-  const tick=()=>{
-    const el=document.getElementById('tl-'+job.id);
-    if(!el) return;
-    const rows=el.querySelectorAll('.tls');
-    if(i>0){ rows[i-1].classList.remove('doing'); rows[i-1].classList.add('done'); }
-    if(i<rows.length){ rows[i].classList.add('doing'); i++; setTimeout(tick, job.urgent?420:850+Math.random()*600); }
-    else{ job.done=true; MEM.done++; persistMem(); persistJobs(); renderJobs(); }
-  };
-  setTimeout(tick,300);
+  runLive(job,effectiveHook());
 }
 async function runLive(job,hook){
   try{
@@ -975,14 +940,21 @@ async function runLive(job,hook){
     if(docsPayload.length) job.docsSent=docsPayload.map(d=>d.name);
     const res=await fetch(hook,{method:'POST',headers:{'Content-Type':'application/json'},
       body:JSON.stringify({prompt:job.prompt,files:job.files,type:job.type,ts:job.ts,urgent:!!job.urgent,memory:MEM.lessons.slice(-10),video_ids:job.videoIds||[],docs:docsPayload})});
-    let txt=await res.text();
-    try{ const p=JSON.parse(txt); if(p && typeof p.texte==='string') txt=p.texte; }catch(e){}
-    if(!res.ok){ job.error="La cellule n'a pas pu produire (HTTP "+res.status+"). Ouvre n8n > Executions pour le détail."; }
-    else if(!txt||!txt.trim()){ job.error="Demande bien reçue par n8n, mais la cellule n'a pas pu produire : la clé API Anthropic manque (n8n > Credentials > Anthropic x-api-key). Voir MODE_D_EMPLOI."; }
+    let txt=await res.text(); let payload=null;
+    try{ payload=JSON.parse(txt); if(payload && typeof payload.texte==='string') txt=payload.texte; }catch(e){}
+    if(payload){ job.agents=Array.isArray(payload.agents_mobilises)?payload.agents_mobilises:null; job.document=payload.document||null; job.diag=payload.diagnostic||null; }
+    if(!res.ok){
+      const why=(res.status===503)?"la base de données de la cellule est indisponible (503), voir PROCEDURE_URGENCE_N8N_POSTGRES"
+        :(res.status===404)?"le webhook n'existe pas ou le workflow n'est pas publié (404)"
+        :(res.status===401||res.status===403)?"accès refusé par n8n ("+res.status+")"
+        :"erreur HTTP "+res.status;
+      job.error="La cellule n'a pas pu produire : "+why+((job.diag&&job.diag.message)?" · "+job.diag.message:"")+".";
+    }
+    else if(!txt||!txt.trim()){ job.error="Réponse vide de la cellule"+((job.diag&&job.diag.message)?" : "+job.diag.message:" (vérifier le workflow SSS 1 et la clé Anthropic dans n8n)")+"."; }
     else { job.response=txt; }
     job.done=true; MEM.done++; persistMem();
   }catch(e){
-    job.error="Webhook injoignable ("+e.message+"). Vérifiez l'URL n8n.";
+    job.error="Cellule injoignable : "+e.message+" — vérifier la connexion internet puis l'état n8n (healthz/readiness).";
     job.done=true;
   }
   persistJobs(); renderJobs();
@@ -1015,38 +987,35 @@ function renderJobs(){
     return;
   }
   box.innerHTML=memCard()+JOBS.map(j=>{
-    const steps=stepsFor({chain:j.chain});
     let body='';
     if(!j.done){
-      body=`<div class="tl" id="tl-${j.id}">${steps.map(s=>`<div class="tls"><div class="dot"></div><div class="tt">${s}</div></div>`).join('')}</div>`;
+      body=`<div class="tl" id="tl-${j.id}"><div class="tls doing"><div class="dot"></div><div class="tt">La cellule réelle travaille sur votre demande…</div></div></div>`;
     } else if(j.error){
       body=`<div class="jp" style="border-color:#f2c9c9;background:var(--red-soft);color:var(--red-dk);font-style:normal">${j.error}</div>`;
-    } else if(j.type==="Consultation"){
-      const rep=(j.response||'').replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
-      body=`<div class="jp" style="white-space:pre-wrap;font-style:normal;color:var(--ink)">${rep}</div>`;
     } else {
-      const label=j.type+' — '+(clientOf(j.prompt)||'document');
-      body=`<div class="tl">${steps.map(s=>`<div class="tls done"><div class="dot"></div><div class="tt">${s}</div></div>`).join('')}</div>
-      <div class="dlv">
+      const rep=(j.response||'').replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+      const agents=(j.agents&&j.agents.length)?j.agents:['Victor'];
+      const tl=`<div class="tl">${agents.map(a=>`<div class="tls done"><div class="dot"></div><div class="tt">${a} a travaillé sur cette demande</div></div>`).join('')}</div>`;
+      const doc=j.document?`<div class="dlv">
         <div class="dic"><svg viewBox="0 0 24 24"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6"/></svg></div>
-        <div><div class="dn">${label}</div><div class="ds">Validé par Diane · standard AN-00354</div></div>
+        <div><div class="dn">${(j.document&&j.document.nom)||'Document'}</div><div class="ds">Document réel généré par la cellule</div></div>
         <div class="da"><button onclick="openDoc(${j.id})" class="alt">Aperçu</button><button onclick="dlDoc(${j.id})">Télécharger</button></div>
-      </div>
-      ${j.fb==='ok'?`<div class="fbrow"><span class="fbdone">✓ Validé — préférence mémorisée par la cellule</span></div>`
-       :j.fb==='ko'?`<div class="fbrow"><span class="fbdone" style="color:var(--red-dk)">↺ Correction retenue — intégrée aux prochains livrables</span></div>`
-       :`<div class="fbrow"><button onclick="fbJob(${j.id},true)">👍 Valider</button><button class="ko" onclick="fbJob(${j.id},false)">✎ Demander une correction</button></div>`}`;
+      </div>`:(j.type==="Consultation"?'':`<div class="jp" style="font-style:normal;color:#6c6c6c">Aucun document généré : le livrable est le texte ci-dessus.</div>`);
+      body=`<div class="jp" style="white-space:pre-wrap;font-style:normal;color:var(--ink)">${rep}</div>${tl}${doc}
+      ${j.fb==='ok'?`<div class="fbrow"><span class="fbdone">✓ Validé, préférence mémorisée par la cellule</span></div>`
+      :j.fb==='ko'?`<div class="fbrow"><span class="fbdone" style="color:var(--red-dk)">↺ Correction retenue, intégrée aux prochains livrables</span></div>`
+      :`<div class="fbrow"><button onclick="fbJob(${j.id},true)">👍 Valider</button><button class="ko" onclick="fbJob(${j.id},false)">✎ Demander une correction</button></div>`}`;
     }
     return `<div class="job">
-      <div class="jh"><div class="jic">${jobIcon(j.type)}</div>
-        <div style="min-width:0"><div class="jt">${j.type}${j.pole?' · '+poleName(j.pole):''}${j.urgent?'<span class="badge-urg">PRIORITÉ</span>':''}</div><div class="jm">${j.ts}</div></div></div>
-      <div class="jp">« ${j.prompt} »</div>
-      ${j.files.length?`<div class="jfiles">${j.files.map(f=>`<span>📎 ${f}</span>`).join('')}</div>`:''}
-      ${j.videoIds&&j.videoIds.length?`<div class="jfiles"><span style="background:#e7f4ec;border-color:#cbe7d6;color:var(--ok)">\u2713 Vid\u00e9o upload\u00e9e chez Meta (id ${j.videoIds.join(', ')})</span></div>`:''}
-      ${j.videoWarn?`<div class="jfiles"><span style="background:var(--red-soft);border-color:#f2c9c9;color:var(--red-dk)">\u26a0 ${j.videoWarn}</span></div>`:''}
-      ${j.docsSent&&j.docsSent.length?`<div class="jfiles"><span style="background:#e7f4ec;border-color:#cbe7d6;color:var(--ok)">\u2713 ${j.docsSent.length} document(s) transmis et lus par les agents</span></div>`:''}
-      ${j.docWarn?`<div class="jfiles"><span style="background:var(--red-soft);border-color:#f2c9c9;color:var(--red-dk)">\u26a0 ${j.docWarn}</span></div>`:''}
-      ${j.response?`<div class="jp" style="font-style:normal">${String(j.response).slice(0,1200)}</div>`:''}
-      ${body}
+    <div class="jh"><div class="jic">${jobIcon(j.type)}</div>
+    <div style="min-width:0"><div class="jt">${j.type}${j.urgent?'<span class="badge-urg">PRIORITÉ</span>':''}</div><div class="jm">${j.ts}</div></div></div>
+    <div class="jp">« ${j.prompt} »</div>
+    ${j.files.length?`<div class="jfiles">${j.files.map(f=>`<span>📎 ${f}</span>`).join('')}</div>`:''}
+    ${j.videoIds&&j.videoIds.length?`<div class="jfiles"><span style="background:#e7f4ec;border-color:#cbe7d6;color:var(--ok)">✓ Vidéo uploadée chez Meta (id ${j.videoIds.join(', ')})</span></div>`:''}
+    ${j.videoWarn?`<div class="jfiles"><span style="background:var(--red-soft);border-color:#f2c9c9;color:var(--red-dk)">⚠ ${j.videoWarn}</span></div>`:''}
+    ${j.docsSent&&j.docsSent.length?`<div class="jfiles"><span style="background:#e7f4ec;border-color:#cbe7d6;color:var(--ok)">✓ ${j.docsSent.length} document(s) transmis et lus par les agents</span></div>`:''}
+    ${j.docWarn?`<div class="jfiles"><span style="background:var(--red-soft);border-color:#f2c9c9;color:var(--red-dk)">⚠ ${j.docWarn}</span></div>`:''}
+    ${body}
     </div>`;
   }).join('');
 }
@@ -1054,241 +1023,20 @@ function clientOf(p){
   const m=p.match(/(?:pour|de|du|chez|la villa|le|l')\s+(?:la |le |l')?((?:villa |régie |ferme |immeuble |duplex |atelier )?[A-ZÉÈÂÎ][\wéèêëàâîïôûüç'&-]+(?:\s+[A-ZÉÈÂÎ&][\wéèêëàâîïôûüç'&-]+){0,2})/);
   return m?m[1].trim():null;
 }
-function buildOffre(j){
-  const client=clientOf(j.prompt)||"[Client / Projet]";
-  const d=new Date(), dd=x=>String(x).padStart(2,'0');
-  const date=dd(d.getDate())+'.'+dd(d.getMonth()+1)+'.'+d.getFullYear();
-  const v=new Date(d.getTime()+30*864e5);
-  const val=dd(v.getDate())+'.'+dd(v.getMonth()+1)+'.'+v.getFullYear();
-  const kw=(j.prompt.match(/(\d+[.,]?\d*)\s*k[wW]c/)||[])[1];
-  const bat=/batter/i.test(j.prompt);
-  const micro=/micro[- ]?onduleur|atmoce/i.test(j.prompt);
-  const solax=/solax/i.test(j.prompt);
-  const nmod=(function(){const m=j.prompt.match(/(\d+)\s*(modules?|panneaux?)/i);if(m)return +m[1];return kw?Math.round(parseFloat(String(kw).replace(',','.'))*1000/490):16;})();
-  const kwEff=kw?parseFloat(String(kw).replace(',','.')):(nmod*0.49);
-  const kwhBat=(function(){const m=j.prompt.match(/(\d+)\s*kwh/i);return m?+m[1]:10;})();
-  const fmt=n=>{const p=n.toFixed(2).split('.');return p[0].replace(/\B(?=(\d{3})+(?!\d))/g,"'")+'.'+p[1]};
-  const PU={module:275, ondul:2950, micro:255, bat:640*Math.max(kwhBat,10)/1, structure:225, cabl:1480, coffret:1450, racc:1250, mo:2900, moBat:3400, dossier:950};
-  PU.bat=Math.round(6400*kwhBat/10/50)*50;
-  const rows=[
-    ["Modules photovolta\u00efques Full Black \u2013 MaviWatt Pulse 490 W ("+nmod+" panneaux)",
-     "Fourniture de "+nmod+" modules back contact Full Black \u2013 puissance totale install\u00e9e "+(kwEff.toFixed(2))+" kWc.<br>\u2022 Aspect Full Black premium \u2013 esth\u00e9tique homog\u00e8ne<br>\u2022 Dimensions : 1 800 \u00d7 1 134 \u00d7 30 mm \u2013 cadre aluminium anodis\u00e9 noir<br>\u2022 Rendement \u00e9lev\u00e9 \u2013 garantie produit et performance selon documentation constructeur<br>\u2022 Calepinage v\u00e9rifi\u00e9 conforme \u00e0 l'implantation", nmod.toFixed(2), PU.module, nmod*PU.module]
-  ];
-  if(micro){
-    rows.push(["Micro-onduleurs ATMOCE ("+nmod+" unit\u00e9s) + monitoring panneau par panneau",
-     "Solution micro-onduleurs : un convertisseur par module, supervision individuelle.<br>\u2022 Conformit\u00e9 r\u00e9seau EN 50549<br>\u2022 Monitoring panneau par panneau \u2013 d\u00e9tection fine de sous-performance / ombrage<br>\u2022 Passerelle de communication et supervision<br>\u2022 S\u00e9curit\u00e9 : arr\u00eat au niveau du module \u2013 pas de haute tension DC en toiture", nmod.toFixed(2), PU.micro, nmod*PU.micro]);
-  } else {
-    rows.push(["Onduleur hybride "+(solax?"SolaX":"Each Energy")+" triphas\u00e9 + Smart Meter",
-     "Onduleur hybride triphas\u00e9 adapt\u00e9 \u00e0 la puissance install\u00e9e, avec compteur intelligent.<br>\u2022 Sortie triphas\u00e9e 400 V \u2013 conformit\u00e9 r\u00e9seau suisse EN 50549<br>\u2022 Smart Meter \u2013 mesure production / consommation / injection<br>\u2022 Monitoring int\u00e9gr\u00e9 \u2013 protection anti-\u00eelotage", "1.00", PU.ondul, PU.ondul]);
-  }
-  if(bat) rows.push(["Batterie "+(solax?"SolaX":"Each Energy")+" "+kwhBat+" kWh LFP + fonction secours (EPS / Backup)",
-     "Syst\u00e8me de stockage LFP coupl\u00e9 \u00e0 l'onduleur hybride, optimisation de l'autoconsommation.<br>\u2022 Capacit\u00e9 utile ~"+kwhBat+" kWh \u2013 technologie LiFePO4 \u2013 BMS int\u00e9gr\u00e9<br>\u2022 Fonction secours EPS / Backup sur circuits prioritaires<br>\u2022 Dimensionnement d\u00e9finitif selon profil de consommation r\u00e9el", "1.00", PU.bat, PU.bat]);
-  rows.push(
-    ["Structure de fixation en surimposition (applique) \u2013 K2 Systems",
-     "Syst\u00e8me aluminium certifi\u00e9 K2 adapt\u00e9 \u00e0 la couverture.<br>\u2022 Rails aluminium, crochets, brides, visserie inox<br>\u2022 Mise \u00e0 la terre et liaisons \u00e9quipotentielles<br>\u2022 Dimensionnement lestage/fixation selon normes SIA", "1.00", nmod*PU.structure, nmod*PU.structure],
-    [micro?"Coffret AC + c\u00e2blage AC + protections + parafoudre":"C\u00e2blage DC / AC + protections + parafoudre",
-     "\u2022 C\u00e2bles solaires DC EN50618, connecteurs MC4, conduits<br>\u2022 Protections DC et AC, sectionnement \u2013 parafoudre type II<br>\u2022 Liaisons \u00e9quipotentielles \u2013 conformit\u00e9 NIBT / OIBT", "1.00", micro?PU.coffret:PU.cabl, micro?PU.coffret:PU.cabl],
-    ["Raccordement \u00e9lectrique au tableau",
-     "\u2022 Raccordement AC au tableau \u2013 adaptation selon installation existante<br>\u2022 Rep\u00e9rage et mise en conformit\u00e9 \u2013 NIBT / OIBT", "1.00", PU.racc, PU.racc],
-    ["Main-d'\u0153uvre \u2013 installation compl\u00e8te",
-     "\u2022 Pose de la structure et des modules \u2013 c\u00e2blage DC/AC<br>\u2022 Raccordements, essais et mise en service"+(bat?"<br>\u2022 Installation et c\u00e2blage du syst\u00e8me de stockage":"")+"<br>\u2022 Coordination chantier et direction des travaux", "1.00", bat?PU.moBat:PU.mo, bat?PU.moBat:PU.mo],
-    ["Dossier administratif & mise en service",
-     "\u2022 Sch\u00e9mas \u00e9lectriques \u2013 annonce GRD \u2013 dossier Pronovo<br>\u2022 Rapport de mise en service \u2013 contr\u00f4le OIBT / NIBT", "1.00", PU.dossier, PU.dossier]);
-  const totalHT=rows.reduce((t,r)=>t+r[4],0);
-  const tva=totalHT*0.081;
-  const tbody=rows.map((r,i)=>`<tr${i%2?" style='background:#F5F5F5'":""}><td style="padding:8px 10px;vertical-align:top;font-weight:700">${i+1}</td><td style="padding:8px 10px;vertical-align:top"><b>${r[0]}</b><br><span style="font-size:12px;color:#333">${r[1]}</span></td><td style="padding:8px 10px;vertical-align:top;text-align:right">${r[2]}</td><td style="padding:8px 10px;vertical-align:top;text-align:right">${fmt(r[3])}</td><td style="padding:8px 10px;vertical-align:top;text-align:right">${fmt(r[4])}</td></tr>`).join('');
-  const title=`Installation photovolta\u00efque${kw?" \u2013 "+kw+" kWc":""}${micro?" \u2013 micro-onduleurs ATMOCE":(solax?" \u2013 onduleur hybride SolaX":" \u2013 onduleur hybride Each Energy")}${bat?" \u2013 batterie":""} \u2013 ${client}`;
-  return `<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><title>Offre \u2013 ${client}</title>
-<style>body{font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;color:#1f1f1f;max-width:800px;margin:0 auto;padding:40px 32px;line-height:1.5;font-size:13.5px}
-.lh{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px}
-.lh .co b{font-size:19px;letter-spacing:.5px}.lh .co b span{color:#CC0000}
-.lh .co,.lh .cl{font-size:12px;color:#444}.lh .cl{text-align:right;padding-top:24px;font-size:13px}
-.rule{height:3px;background:#CC0000;margin:14px 0 24px}
-h1{color:#CC0000;font-size:27px;letter-spacing:-.5px;margin:0 0 4px}
-.sub{font-weight:700;color:#1f1f1f;font-size:14.5px;max-width:460px}
-.meta{float:right;font-size:13px;margin-top:-46px}.meta b{display:inline-block;min-width:90px}
-table{width:100%;border-collapse:collapse;margin:20px 0 6px;font-size:13px}
-thead th{background:#3A3A3A;color:#fff;text-align:left;padding:8px 10px;font-size:11.5px;text-transform:uppercase;letter-spacing:.4px}
-thead th:nth-child(3),thead th:nth-child(4),thead th:nth-child(5){text-align:right}
-.tot{margin:14px 0;text-align:right}
-.tot .l{margin:3px 0}
-.ttc{display:inline-block;border:2px solid #c9a227;background:#fdf9ee;padding:10px 18px;font-size:17px;font-weight:700;margin-top:8px}
-h2{color:#1f1f1f;font-size:14.5px;margin:22px 0 6px}
-ul{margin:4px 0 0 18px;padding:0}li{margin-bottom:3px}
-.demo{margin-top:36px;padding:12px 16px;background:#F5F5F5;border-left:3px solid #CC0000;font-size:11.5px;color:#6c6c6c}
-.ft{margin-top:34px;border-top:1px solid #ddd;padding-top:10px;font-size:10.5px;color:#777;text-align:center}</style></head><body>
-<div class="lh"><div class="co"><b>SWISS SOLAR <span>SYSTEM</span></b><br>Rue Antoinette Quinche 4<br>1022 Chavannes-pr\u00e8s-Renens \u00b7 Suisse</div>
-<div class="cl"><b>[Destinataire]</b><br>[Contact]<br>[Adresse]<br>[NPA Localit\u00e9]</div></div>
-<div class="rule"></div>
-<h1>Offre AN-00XXX <span style="font-size:13px;color:#6c6c6c;font-weight:400">(num\u00e9ro \u00e0 attribuer)</span></h1>
-<div class="sub">${title}</div>
-<div class="meta">Date : <b>${date}</b><br>Valable jusqu'au : <b>${val}</b><br>Interlocuteur : <b>Adson Bailly</b></div>
-<p style="margin-top:18px">\u00c0 l'attention de ${client}</p>
-<p>Dans le cadre de votre projet, nous vous soumettons notre offre pour le lot \u00ab installation photovolta\u00efque \u00bb. <i>[Contexte pr\u00e9cis \u2013 implantation, pan de toiture, calepinage, coordination chantier \u2013 \u00e0 compl\u00e9ter par Marc sur la base des plans et de la visite technique.]</i> L'intervention prend en compte les raccords de toiture, le maintien de l'\u00e9tanch\u00e9it\u00e9, les passages de c\u00e2bles et la protection des \u00e9l\u00e9ments existants. Demande d'origine : \u00ab ${j.prompt} \u00bb</p>
-<table><thead><tr><th>Pos.</th><th>Description</th><th>Qt\u00e9</th><th>Prix unit.</th><th>Prix total CHF</th></tr></thead><tbody>${tbody}</tbody></table>
-<div class="tot"><div class="l">Sous-total HT&nbsp;&nbsp;<b>${fmt(totalHT)} CHF</b></div><div class="l">TVA 8,1 %&nbsp;&nbsp;${fmt(tva)} CHF</div><div class="ttc">MONTANT TOTAL TTC&nbsp;&nbsp;${fmt(totalHT+tva)} CHF</div></div>
-<h2>R\u00e9serves & conditions d'ex\u00e9cution</h2>
-<ul><li>Quantit\u00e9s et conditions d'ex\u00e9cution \u00e0 confirmer lors de la visite technique et de la coordination avec la direction des travaux.</li>
-<li>Choix d\u00e9finitif du module et puissance finale sous r\u00e9serve de validation dimensionnelle.</li>
-<li>Installation conforme aux normes NIBT / OIBT / EN 50549 \u2013 contr\u00f4le final et mise en service inclus.</li>
-<li>\u00c9chafaudage non chiffr\u00e9 : \u00e0 pr\u00e9ciser selon les conditions du chantier.</li></ul>
-<h2>D\u00e9lais & planification</h2>
-<ul><li>[D\u00e9lai de remise et d\u00e9marrage chantier \u00e0 confirmer \u2013 Marc]</li>
-<li>Intervention PV \u00e0 coordonner avec l'avancement toiture / couverture / \u00e9chafaudage.</li></ul>
-<h2>Conditions de paiement</h2>
-<ul><li>Acompte 40 % \u00e0 la commande (mise en production et planification)</li>
-<li>Acompte 40 % au d\u00e9but de l'intervention sur site</li>
-<li>Solde 20 % \u00e0 la mise en service de l'installation</li></ul>
-<p style="margin-top:16px">Nous restons \u00e0 votre disposition pour toute pr\u00e9cision technique ou adaptation n\u00e9cessaire.</p>
-<p>Cordialement,<br><b>Adson Bailly</b><br>Swiss Solar System S\u00e0rl</p>
-${MEM.lessons.length?`<h2>Pr\u00e9f\u00e9rences int\u00e9gr\u00e9es (m\u00e9moire de la cellule)</h2><ul>${MEM.lessons.slice(-5).map(l=>'<li>'+l+'</li>').join('')}</ul>`:''}
-<div class="demo">Gabarit de d\u00e9monstration g\u00e9n\u00e9r\u00e9 par l'Atelier au format des offres AN-00360 \u00e0 AN-00362. Une fois l'Atelier branch\u00e9 sur n8n, la cellule produit l'offre compl\u00e8te et chiffr\u00e9e, contr\u00f4l\u00e9e par Thomas et Chlo\u00e9, valid\u00e9e par Diane.</div>
-<div class="ft">Swiss Solar System S\u00e0rl \u00b7 Rue Antoinette Quinche 4, 1022 Chavannes-pr\u00e8s-Renens \u00b7 contact@swisssolarsystem.com \u00b7 +41 21 552 04 40 \u00b7 www.swisssolarsystem.com<br>N\u00b0 TVA : CHE-243.775.671 \u00b7 IBAN : CH25 0076 7000 C567 7278 2 \u00b7 BCV</div>
+function docHtml(j){
+  if(j.document&&j.document.html) return j.document.html;
+  const esc=s=>String(s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+  return `<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><title>${esc((j.document&&j.document.nom)||j.type||'Livrable')}</title>
+<style>body{font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;color:#1f1f1f;max-width:800px;margin:0 auto;padding:40px 32px;line-height:1.55;font-size:13.5px}
+.hd{display:flex;justify-content:space-between;border-bottom:3px solid #CC0000;padding-bottom:10px;margin-bottom:22px;font-size:12px;color:#444}
+pre{white-space:pre-wrap;font:inherit;margin:0}</style></head><body>
+<div class="hd"><b>SWISS SOLAR SYSTEM · Cellule IA</b><span>${esc(j.ts||'')}</span></div>
+<pre>${esc(j.response||'')}</pre>
 </body></html>`;
 }
-function buildProtocole(j){
-  const p=j.prompt;
-  const kind=/\bpac\b|pompe [aà] chaleur|panasonic|daikin|mitsubishi/i.test(p)?'PAC':(/batter/i.test(p)?'Batterie':'PV');
-  const client=clientOf(p)||"[Nom du client]";
-  let sd=(j.id||Date.now())>>>0;
-  const rnd=()=>{sd=(Math.imul(sd,1664525)+1013904223)>>>0;return sd/4294967296};
-  const r=(a,b,d)=>{const v=a+rnd()*(b-a);return d?v.toFixed(d):Math.round(v)};
-  const d=new Date(),dd=x=>String(x).padStart(2,'0');
-  const date=dd(d.getDate())+'.'+dd(d.getMonth()+1)+'.'+d.getFullYear();
-  const ures=r(229,233);
-  const pe=()=>r(0.10,0.24,2);
-  const icc=(inA)=>({40:r(1080,1360),32:r(880,1120),25:r(760,940),16:r(590,760),13:r(500,690)})[inA];
-  const tdec=()=>r(17,34);
-  const CHK='<span style="font-family:monospace">[x]</span> ';
-  const kw=(p.match(/(\d+[.,]?\d*)\s*k[wW]c?/)||[])[1];
-  const brand=(p.match(/huawei|solax|each|enphase|byd|panasonic|daikin|mitsubishi|fronius|atmoce/i)||[''])[0];
-  const B=brand?brand.charAt(0).toUpperCase()+brand.slice(1).toLowerCase():'';
-  let perim='',rows=[],extra='';
-  function row(des,cable,car,inA,ddr){
-    const i=icc(inA);
-    return `<tr><td>${des}</td><td>${cable}</td><td style="text-align:center">${car}${inA}</td><td style="text-align:right">${i}</td><td style="text-align:right">${i}</td><td style="text-align:right">&gt;500</td><td style="text-align:right">${pe()}</td><td style="text-align:center">${ddr||''}</td><td style="text-align:center">${ddr?'30':''}</td><td style="text-align:center">${ddr?tdec():''}</td></tr>`;
-  }
-  if(kind==='PV'){
-    const kwv=kw?parseFloat(kw.replace(',','.')):r(6,12);
-    const nmod=(p.match(/(\d+)\s*(modules?|panneaux?)/i)||[])[1]||Math.round(kwv*1000/490);
-    const ond=B&&!/maviwatt/i.test(B)?B:'Each Energy';
-    perim=`Installation ${nmod} PV MaviWatt · Onduleur ${ond}${kw?' · '+kw+' kWc':''}`;
-    const n1=Math.min(nmod,Math.ceil(nmod/2)),n2=nmod-n1;
-    const uocm=r(44.2,44.8,1),iscm=r(13.8,14.1,1),umppm=r(36.8,37.4,1),imppm=r(13.0,13.3,1);
-    const strings=[[1,n1],[2,n2]].filter(x=>x[1]>0).map(x=>
-      `<tr><td style="text-align:center">${x[0]}</td><td style="text-align:center">${x[1]}</td><td style="text-align:right">${(x[1]*uocm).toFixed(0)}</td><td style="text-align:right">${iscm}</td><td style="text-align:right">&gt;500</td><td style="text-align:right">${(x[1]*umppm).toFixed(0)}</td><td style="text-align:right">${imppm}</td></tr>`).join('');
-    extra=`<h2>Indications modules et onduleur</h2>
-<p>Modules : MaviWatt Pulse 490 W Full Black, ${nmod} pièces (Pmpp 490 W, Umpp ${umppm} V, Impp ${imppm} A, Uoc ${uocm} V, Isc ${iscm} A). Onduleur : ${ond}${kw?', puissance système '+kw+' kW DC':''}. Structure K2 Systems. Section PE pour PV : 10 mm². Section PE principal : 10 mm².</p>
-<h2>Tests de fonctionnement et mesures catégorie 1</h2>
-<p>Conditions : ${['ensoleillé','variable','nuageux'][r(0,2.99)|0]}, irradiation ${r(480,920)} W/m², température ${r(9,26)} °C. Continuité électrique vérifiée, conducteur de protection PE, polarité vérifiée sur chaque circuit.</p>
-<table><thead><tr><th>Circuit n°</th><th>Modules</th><th>Uoc [V]</th><th>Isc [A]</th><th>Riso [MΩ]</th><th>Umpp [V]</th><th>Impp [A]</th></tr></thead><tbody>${strings}</tbody></table>`;
-    rows=[row('Alim Onduleur','5x10','C',40)];
-  } else if(kind==='Batterie'){
-    const bb=B||'Enphase 5P';
-    perim=`Installation batterie ${bb}${kw?' · '+kw+' kWh':''}`;
-    rows=[row('Alim Batterie · DCA','5x2.5','C',16)];
-  } else {
-    const bb=B||'Panasonic';
-    const kwv=kw||'12';
-    perim=`PAC air/eau ${bb} ${kwv} kW · Unité ext. 3x400V / 16A · Module int. 3x400V / 13A`;
-    rows=[row('1 / PAC Unité ext. · 3x400V','5G4','C',16,'25/A'),
-          row('2 / PAC Module int. · 3x400V','5G2.5','C',13,'25/A'),
-          row('3 / Régulation · 3x400V','3x1.5','C',13,'25/A')];
-  }
-  const title=kind==='PV'?"PV protocole d'essais - mesures":"Protocole d'essais - mesures";
-  return `<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><title>${title} · ${client}</title>
-<style>body{font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;color:#1f1f1f;max-width:820px;margin:0 auto;padding:36px 30px;line-height:1.5;font-size:13px}
-.hd{display:flex;justify-content:space-between;border:1.5px solid #1f1f1f;padding:10px 14px;align-items:center}
-.hd b{font-size:17px}
-h2{font-size:13.5px;margin:20px 0 6px;color:#1f1f1f;border-bottom:1px solid #ccc;padding-bottom:3px}
-table{width:100%;border-collapse:collapse;font-size:11.5px;margin-top:6px}
-th,td{border:1px solid #999;padding:4px 6px;text-align:left}
-thead th{background:#efefef;font-size:10.5px}
-.box{border:1px solid #999;padding:10px 12px;margin-top:8px}
-.two{display:flex;gap:24px}.two>div{flex:1}
-.sig{margin-top:26px;display:flex;justify-content:space-between;gap:30px}
-.note{margin-top:22px;font-size:10.5px;color:#8a6d00;background:#fdf6e3;border-left:3px solid #c9a227;padding:8px 12px}
-.mono{font-family:monospace}</style></head><body>
-<div class="hd"><b>${title}</b><span>Contrôle final (CF) · ${date}</span></div>
-<div class="two" style="margin-top:12px">
-<div class="box"><b>Maître d'oeuvre ${CHK}Client</b><br>${client}<br>[Rue, n°]<br>[NPA / Localité]</div>
-<div class="box"><b>Entrepreneur ${CHK}Installateur électricien</b><br>Swiss Solar System Sàrl<br>Rue Antoinette Quinche 4<br>1022 Chavannes-près-Renens</div>
-</div>
-<div class="box"><b>Périmètre du contrôle / installation effectuée</b><br>${perim}<br><b>Motif :</b> ${CHK}Nouvelle installation · <b>Contrôle :</b> ${CHK}Contrôle final (CF) · <b>Date du contrôle CF :</b> ${date}</div>
-<h2>Examen visuel</h2>
-<p>${CHK}Choix et fixation du matériel selon le genre de local · ${CHK}Protection de base · ${CHK}Installé conformément aux instructions du fabricant · ${CHK}Organes de coupure et de déclenchement · ${CHK}Pose des canalisations · ${CHK}Identification des circuits · ${CHK}Accessibilité · Mode de protection : ${CHK}TN-S · Terre : ${CHK}Fondation · ${CHK}Liaisons équipotentielles principales · ${CHK}Présence de schémas et mises en garde</p>
-<h2>Essais et mesures</h2>
-<p>${CHK}Continuité des conducteurs PE et PA · ${CHK}Déclenchement automatique lors de défaut · ${CHK}Essais des dispositifs DDR · ${CHK}Champ tournant des prises triphasées · Tension de réseau mesurée : <b>${ures} V</b></p>
-${extra}
-<h2>Mesure des raccordements AC</h2>
-<table><thead><tr><th>Lieu / Désignation</th><th>Câble [mm²]</th><th>Coupe-surint.</th><th>Icc déb. [A]</th><th>Icc fin [A]</th><th>Riso [MΩ]</th><th>Cont. PE [Ω]</th><th>DDR IN/Type</th><th>IΔN [mA]</th><th>t décl. [ms]</th></tr></thead>
-<tbody>${rows.join('')}</tbody></table>
-<div class="box" style="margin-top:14px"><b>Résultat du contrôle :</b> ${CHK}Pas de défauts · Documentation transmise ${CHK} · Schémas ${CHK}</div>
-<div class="sig"><div><b>Signature de l'entrepreneur</b><br>Date : ${date}<br><br><br>Adson Bailly · Swiss Solar System Sàrl</div><div><b>Contre-signée</b><br>Date : _____________<br><br><br>_____________________________</div></div>
-<div class="note">Protocole prérempli par la cellule IA à partir des informations transmises (valeurs types cohérentes avec l'installation). À vérifier et compléter avec les mesures réelles avant signature : ce document engage l'installateur (OIBT).</div>
-</body></html>`;
-}
-function buildDoc(j){
-  if(j.type==="Offre") return buildOffre(j);
-  if(j.type==="Protocole") return buildProtocole(j);
-  const client=clientOf(j.prompt)||"Client";
-  const d=new Date().toLocaleDateString('fr-CH',{day:'numeric',month:'long',year:'numeric'});
-  const files=j.files.length?`<h2>Pièces transmises</h2><p>${j.files.map(f=>"– "+f).join("<br>")}</p>`:"";
-  let core="";
-  if(j.type==="Comptabilité"){
-    core=`<h2>Analyse des transactions (CAMT)</h2>
-<p>Lecture du fichier bancaire, classement des mouvements : encaissements clients, paiements fournisseurs, salaires, TVA, frais. [Analyse détaillée produite par Mathieu et Gérard une fois la cellule branchée.]</p>
-<h2>Rapprochement</h2>
-<p>Chaque encaissement est rapproché de l'offre ou de la facture correspondante. Les écarts et anomalies sont signalés.</p>
-<h2>Confidentialité</h2>
-<p>Accès strictement réservé au patron. Aucune donnée comptable ne quitte ce canal.</p>`;
-  } else if(j.type==="Point cash"){
-    core=`<h2>Synthèse du jour</h2>
-<p>Trésorerie disponible, encaissements attendus sous 7 jours, sorties planifiées (fournisseurs, salaires, TVA) et alerte anticipée le cas échéant. [Chiffres alimentés par Mathieu via Bexio et la banque une fois la connexion active.]</p>
-<h2>Projection</h2>
-<p>Projection consolidée à 30 et 60 jours, avec mise en évidence des points de tension et du besoin de financement éventuel.</p>`;
-  } else if(j.type==="Relance"){
-    core=`<h2>Brouillons de relance</h2>
-<p><b>J+3 :</b> Nous nous permettons de revenir vers vous au sujet de notre offre. Nous restons à votre disposition pour toute question ou précision.</p>
-<p><b>J+7 :</b> Souhaitez-vous que nous organisions un court échange téléphonique afin de passer en revue les points techniques ou financiers de notre proposition ?</p>
-<p><b>J+14 :</b> Sans retour de votre part, nous nous permettrons de clore provisoirement le dossier. Il nous ferait toutefois plaisir de le réactiver au moment qui vous conviendra.</p>
-<p><i>Rappel : vous seul déclenchez l'envoi.</i></p>`;
-  } else if(j.type==="Audit"){
-    core=`<h2>Trame de relevé terrain</h2>
-<p>Toiture : type de couverture, état, surface exploitable, orientation réelle, inclinaison, ombrages proches et lointains.</p>
-<p>Électricité : tableau, réserve de place, section d'arrivée, compteur, mise à la terre.</p>
-<p>Accès et sécurité : hauteur, moyens d'accès, points d'ancrage.</p>
-<p>[Trame complète générée par Nadia selon le type de projet.]</p>`;
-  } else if(j.type==="Créative Meta Ads"){
-    core=`<h2>Brief créatif Meta Ads</h2>
-<p>Vidéo source intégrée au plan de campagne. Hook retenu dans les 3 premières secondes, gap de curiosité, appel à l'action clair. [Analyse détaillée de la vidéo par Yanis.]</p>
-<h2>Déclinaisons prévues</h2>
-<p>Formats 9:16 (Reels, Stories), 1:1 (feed) et 16:9. Trois variantes d'accroche et deux variantes de CTA pour test A/B.</p>
-<h2>Ciblage et diffusion</h2>
-<p>Audiences propriétaires de villas et immeubles en Suisse romande, retargeting visiteurs du site, exclusion clients signés. Budget et calendrier à valider par vous. [Paramétrage préparé par Nora – la publication ne part jamais sans votre validation.]</p>`;
-  } else {
-    core=`<h2>Synthèse</h2>
-<p>Votre demande a été analysée et routée vers le pôle compétent. Ce document constitue le gabarit du livrable final. [Contenu produit par la cellule une fois connectée via n8n.]</p>`;
-  }
-  return `<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><title>${j.type} – ${client}</title>
-<style>body{font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;color:#1f1f1f;max-width:760px;margin:0 auto;padding:48px 32px;line-height:1.6}
-.head{background:#3A3A3A;color:#fff;padding:18px 24px;border-radius:6px;display:flex;justify-content:space-between;align-items:center;margin-bottom:36px}
-.head b{font-size:17px}.head span{font-size:12px;opacity:.85}
-h1{color:#CC0000;font-size:26px;letter-spacing:-.5px;margin:0 0 6px}
-h2{color:#CC0000;font-size:16px;margin:28px 0 8px}
-.meta{color:#6c6c6c;font-size:13px;margin-bottom:8px}
-.demo{margin-top:44px;padding:12px 16px;background:#F5F5F5;border-left:3px solid #CC0000;font-size:12px;color:#6c6c6c}</style></head><body>
-<div class="head"><b>Swiss Solar System</b><span>Cellule IA · ${d}</span></div>
-<h1>${j.type} – ${client}</h1>
-<p class="meta">Demande d'origine : « ${j.prompt} »</p>
-${core}
-${files}
-${MEM.lessons.length?`<h2>Préférences intégrées</h2><p>${MEM.lessons.slice(-5).map(l=>'– '+l).join('<br>')}</p>`:''}
-<div class="demo">Document de démonstration généré par l'Atelier de la cellule IA. Une fois l'Atelier branché sur n8n, ce livrable est produit par les agents réels, contrôlé, puis validé par Diane avant de vous être remis.</div>
-</body></html>`;
-}
-function docBlob(j){ return new Blob([buildDoc(j)],{type:"text/html;charset=utf-8"}); }
+function docBlob(j){ return new Blob([docHtml(j)],{type:"text/html;charset=utf-8"}); }
 function docName(j){
+  if(j.document&&j.document.nom) return String(j.document.nom).replace(/[^\w.éèêàâîôû-]+/g,'_')+'.html';
   const c=(clientOf(j.prompt)||"document").replace(/[^\wéèêàâîôû-]+/g,"_");
   return j.type.replace(/\s/g,"_")+"_"+c+"_"+new Date().toISOString().slice(0,10)+".html";
 }
@@ -1322,7 +1070,7 @@ function go(p){
 
 /* ---------- INIT ---------- */
 AGENTS.forEach(a=>{ AV[a.n]=avatar(a.n); });
-renderPoles();renderFilters();renderAgents();renderFlows();renderPipeline();initStudio();
+renderPoles();renderFilters();renderAgents();renderFlows();initStudio();loadDash();
 document.querySelectorAll('.stat b[data-count]').forEach(el=>{
   const target=+el.dataset.count; const t0=performance.now(), dur=900;
   const step=t=>{ const k=Math.min(1,(t-t0)/dur); el.textContent=Math.round(target*(1-Math.pow(1-k,3))); if(k<1)requestAnimationFrame(step); };
