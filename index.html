@@ -905,10 +905,24 @@ async function runLive(job,hook){
     }
     delete DOCBLOBS[job.id];
     if(docsPayload.length) job.docsSent=docsPayload.map(d=>d.name);
-    const res=await fetch(hook,{method:'POST',headers:{'Content-Type':'application/json'},
+    const res=await fetchResilient(hook,{method:'POST',headers:{'Content-Type':'application/json'},
       body:JSON.stringify({prompt:job.prompt,files:job.files,ts:job.ts,urgent:!!job.urgent,memory:MEM.lessons.slice(-10),video_ids:job.videoIds||[],docs:docsPayload})});
     let txt=await res.text(); let payload=null;
     try{ payload=JSON.parse(txt); if(payload && typeof payload.texte==='string') txt=payload.texte; }catch(e){}
+    if(payload && payload.statut==='trop_de_requetes'){
+      job.error=payload.message||'Trop de requetes en peu de temps.'; job.done=true; persistJobs(); renderJobs(); return;
+    }
+    if(payload && (payload.statut==='mission_acceptee' || payload.statut==='deja_traitee')){
+      if(payload.texte && String(payload.texte).trim()){
+        job.response=payload.texte; job.done=true; MEM.done++; persistMem(); persistJobs(); renderJobs(); return;
+      }
+      job.missionId=payload.mission_id;
+      job.hook=hook;
+      job.progress={statut:'en_attente',pourcentage:0,etape:0,nb:payload.nb_etapes||5,libelle:'Mise en file d attente',etapes:[]};
+      persistJobs(); renderJobs();
+      suivreMission(job,hook);
+      return;
+    }
     if(payload){ job.agents=Array.isArray(payload.agents_mobilises)?payload.agents_mobilises:null; job.document=payload.document||null; job.diag=payload.diagnostic||null; job.type=payload.type||'Livrable'; job.numero=payload.numero||null; job.meta={niveau:(payload.niveau!==undefined?payload.niveau:null),confiance:(payload.confiance!==undefined?payload.confiance:null),risque:payload.risque||null,urgence:payload.urgence||null,temps_estime:payload.temps_estime||null,controleur:payload.controleur||null,justification:payload.justification||null,journal:Array.isArray(payload.journal)?payload.journal:[]}; }
     if(!res.ok){
       const why=(res.status===503)?"la base de données de la cellule est indisponible (503), voir PROCEDURE_URGENCE_N8N_POSTGRES"
@@ -956,7 +970,7 @@ function renderJobs(){
   box.innerHTML=memCard()+JOBS.map(j=>{
     let body='';
     if(!j.done){
-      body=`<div class="tl" id="tl-${j.id}"><div class="tls doing"><div class="dot"></div><div class="tt">La cellule réelle travaille sur votre demande…</div></div></div>`;
+      body=blocEnCours(j);
     } else if(j.error){
       body=`<div class="jp" style="border-color:#f2c9c9;background:var(--red-soft);color:var(--red-dk);font-style:normal">${j.error}</div>`;
     } else {
@@ -1046,6 +1060,89 @@ document.querySelectorAll('.stat b[data-count]').forEach(el=>{
   const target=+el.dataset.count; const t0=performance.now(), dur=900;
   const step=t=>{ const k=Math.min(1,(t-t0)/dur); el.textContent=Math.round(target*(1-Math.pow(1-k,3))); if(k<1)requestAnimationFrame(step); };
   requestAnimationFrame(step);
+});
+
+/* ==========================================================================
+   Disponibilite permanente de l Atelier (12.07.2026)
+   - fetchResilient : 3 tentatives automatiques (2 s, 5 s, 10 s) sur coupure reseau.
+   - Une mission longue n est JAMAIS perdue : son identifiant est conserve dans le
+     navigateur ; le suivi reprend seul a la reouverture et au retour du reseau.
+   - Une erreur RESEAU affiche la vraie erreur reseau, jamais un probleme de moteur.
+   - Les demandes courtes gardent le traitement direct : rien ne change pour elles.
+   ========================================================================== */
+const RETRIS=[2000,5000,10000];
+async function fetchResilient(url,opts,onRetry){
+  let derniere=null;
+  for(let t=0;t<=RETRIS.length;t++){
+    try{ return await fetch(url,opts); }
+    catch(e){
+      derniere=e;
+      if(t===RETRIS.length) break;
+      if(typeof onRetry==='function'){ try{ onRetry(t+1,RETRIS.length,RETRIS[t]); }catch(_){} }
+      await new Promise(s=>setTimeout(s,RETRIS[t]));
+    }
+  }
+  const err=new Error('RESEAU: '+((derniere&&derniere.message)||'connexion impossible')+' — la cellule est injoignable depuis ce navigateur apres 4 tentatives (immediate, 2 s, 5 s, 10 s). Ce n est PAS une panne du moteur de generation : verifiez votre connexion, puis l etat de n8n.');
+  err.reseau=true;
+  throw err;
+}
+function blocEnCours(j){
+  const p=j.progress;
+  if(!p){ return '<div class="tl" id="tl-'+j.id+'"><div class="tls doing"><div class="dot"></div><div class="tt">La cellule réelle travaille sur votre demande…</div></div></div>'; }
+  const pct=Math.max(0,Math.min(100,p.pourcentage||0));
+  const etapes=Array.isArray(p.etapes)?p.etapes:[];
+  const lignes=etapes.length
+    ? etapes.map(function(e){
+        var cls=(e.statut==='faite')?'done':((e.statut==='en_cours')?'doing':'');
+        var suf=(e.statut==='faite')?' — terminée':((e.statut==='en_cours')?' — en cours':' — en attente');
+        return '<div class="tls '+cls+'"><div class="dot"></div><div class="tt">'+e.numero+'. '+e.titre+suf+'</div></div>';
+      }).join('')
+    : '<div class="tls doing"><div class="dot"></div><div class="tt">'+(p.libelle||'Traitement en cours')+'</div></div>';
+  const alerte=p.reseau?'<div style="margin-top:8px;font-size:12.5px;color:var(--warn)">Réseau instable : nouvelle tentative en cours. La mission continue côté serveur, elle n est pas perdue.</div>':'';
+  const barre='<div style="margin:10px 0 4px;height:6px;border-radius:99px;background:#eceae7;overflow:hidden">'
+    +'<div style="height:100%;width:'+pct+'%;background:var(--red);transition:width .5s"></div></div>'
+    +'<div style="font-size:12.5px;color:#6c6c6c">Mission '+(j.missionId||'')+' · étape '+(p.etape||0)+'/'+(p.nb||5)+' · '+pct+' % · le travail continue même si vous fermez cette page.</div>';
+  return '<div class="tl" id="tl-'+j.id+'">'+lignes+'</div>'+barre+alerte;
+}
+function suivreMission(job,hook){
+  if(!job || !job.missionId || job.done || job._suivi) return;
+  job._suivi=true;
+  const base=String(hook||job.hook||'').replace(/\/atelier\/?$/,'/mission');
+  const tour=async function(){
+    if(job.done) return;
+    try{
+      const r=await fetchResilient(base+'?id='+encodeURIComponent(job.missionId),{cache:'no-store'},function(){
+        if(job.progress){ job.progress.reseau=true; renderJobs(); }
+      });
+      const p=await r.json();
+      if(p && p.statut){
+        job.progress={statut:p.statut,pourcentage:p.pourcentage||0,etape:p.etape_courante||0,nb:p.nb_etapes||5,libelle:p.etape_libelle||'',etapes:Array.isArray(p.etapes)?p.etapes:[],reseau:false};
+        if(p.statut==='terminee'){
+          job.response=p.texte||''; job.dureeS=p.duree_s||null; job.done=true; job.progress=null; job._suivi=false;
+          MEM.done++; persistMem(); persistJobs(); renderJobs(); return;
+        }
+        if(p.statut==='erreur'){
+          job.error='La mission a échoué : '+(p.erreur||'cause inconnue')+'.';
+          job.done=true; job.progress=null; job._suivi=false; persistJobs(); renderJobs(); return;
+        }
+        persistJobs(); renderJobs();
+      }
+    }catch(e){
+      if(job.progress){ job.progress.reseau=true; persistJobs(); renderJobs(); }
+    }
+    setTimeout(tour,5000);
+  };
+  setTimeout(tour,1500);
+}
+window.addEventListener('load',function(){
+  try{
+    const el=document.getElementById('hook');
+    const hk=(el && el.value) ? el.value : 'https://n8n-production-31f2.up.railway.app/webhook/atelier';
+    (JOBS||[]).forEach(function(j){ if(j && j.missionId && !j.done){ j._suivi=false; suivreMission(j,j.hook||hk); } });
+  }catch(e){}
+});
+window.addEventListener('online',function(){
+  try{ (JOBS||[]).forEach(function(j){ if(j && j.missionId && !j.done){ j._suivi=false; suivreMission(j,j.hook); } }); }catch(e){}
 });
 </script>
 </body>
