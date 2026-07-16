@@ -1040,7 +1040,8 @@ function initStudio(){
   dz.addEventListener('drop',e=>{ if(e.dataTransfer&&e.dataTransfer.files.length) addFiles(e.dataTransfer.files); });
   document.getElementById('prompt').addEventListener('input',updateRoute);
   renderSuggs(); applyMode();
-  JOBS.forEach(j=>{ if(!j.done) j.done=true; });
+  /* Une mission persistante (missionId) n'est JAMAIS close au chargement : son suivi reprend automatiquement. */
+  JOBS.forEach(j=>{ if(!j.done && !j.missionId) j.done=true; });
   renderJobs();
 }
 
